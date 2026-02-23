@@ -29,6 +29,7 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = ["slow: marks tests that load the real transformer model (deselect with '-m not slow')"]
 
 [build-system]
 requires = ["hatchling"]
