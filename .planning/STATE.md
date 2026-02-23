@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Users can search and read news with clear, confidence-scored separation of facts from opinions
-**Current focus:** Phase 1 — Database Foundation
+**Current focus:** Phase 2 — Ingestion Pipeline
 
 ## Current Position
 
-Phase: 1 of 5 (Database Foundation)
-Plan: 3 of 3 in current phase
-Status: Phase Complete
-Last activity: 2026-02-23 — Completed 01-03-PLAN.md (Migration smoke tests — pytest async fixtures + schema verification)
+Phase: 2 of 5 (Ingestion Pipeline)
+Plan: 2 of 4 in current phase
+Status: Executing
+Last activity: 2026-02-23 — Completed 02-02-PLAN.md (Core ingestion leaf modules: fetcher, extractor, deduplicator, sources)
 
-Progress: [███░░░░░░░] 20%
+Progress: [████░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -67,5 +67,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 01-database-foundation/01-03-PLAN.md
+Stopped at: Completed 02-ingestion-pipeline/02-02-PLAN.md
 Resume file: None
