@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     article_fetch_delay: float = 1.5
     consecutive_failure_threshold: int = 3
 
+    # NLP classification settings
+    nlp_enabled: bool = True  # Set to False to disable classification in dev/test
+    nlp_batch_size: int = 10
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

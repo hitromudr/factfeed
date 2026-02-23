@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 import httpx
+import structlog
 from fastapi import FastAPI
 
 from factfeed.config import settings
@@ -12,6 +13,8 @@ from factfeed.ingestion.persister import seed_sources
 from factfeed.ingestion.runner import run_ingestion_cycle
 from factfeed.ingestion.scheduler import create_scheduler
 from factfeed.ingestion.sources import SOURCES
+
+log = structlog.get_logger()
 
 
 @asynccontextmanager
@@ -23,6 +26,18 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as session:
         await seed_sources(session, SOURCES)
 
+    # Initialize NLP classifier (lazy — only if enabled)
+    zs_pipeline = None
+    calibrator = None
+    if settings.nlp_enabled:
+        try:
+            from factfeed.nlp.classifier import create_classifier
+
+            zs_pipeline = create_classifier()
+            log.info("nlp_classifier_loaded", model="deberta-v3-base-zeroshot-v2.0")
+        except Exception:
+            log.warning("nlp_classifier_unavailable", exc_info=True)
+
     # Create shared HTTP client
     async with httpx.AsyncClient(
         headers={"User-Agent": settings.user_agent},
@@ -33,6 +48,22 @@ async def lifespan(app: FastAPI):
         # Create and start scheduler
         async def ingestion_job():
             await run_ingestion_cycle(AsyncSessionLocal, http_client)
+
+            # Post-ingestion classification
+            if settings.nlp_enabled and zs_pipeline is not None:
+                try:
+                    from factfeed.nlp.pipeline import classify_unprocessed_articles
+
+                    classified = await classify_unprocessed_articles(
+                        AsyncSessionLocal,
+                        zs_pipeline,
+                        calibrator,
+                        batch_size=settings.nlp_batch_size,
+                    )
+                    if classified > 0:
+                        log.info("nlp_classification_complete", articles_classified=classified)
+                except Exception:
+                    log.error("nlp_classification_failed", exc_info=True)
 
         scheduler = create_scheduler(ingestion_job)
         scheduler.start()
