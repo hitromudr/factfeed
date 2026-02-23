@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Database Foundation** - Establish the PostgreSQL schema with all indexes, child tables, and columns required before any data is inserted (completed 2026-02-23)
 - [x] **Phase 2: Ingestion Pipeline** - Fetch, deduplicate, and persist real article content from all five target RSS sources on a scheduled background job (completed 2026-02-23)
-- [ ] **Phase 3: NLP Classification Pipeline** - Build and validate the hybrid fact/opinion/mixed/unclear classifier with calibrated confidence scores before the web layer depends on its output
+- [x] **Phase 3: NLP Classification Pipeline** - Build and validate the hybrid fact/opinion/mixed/unclear classifier with calibrated confidence scores before the web layer depends on its output (completed 2026-02-23)
 - [ ] **Phase 4: Web Interface** - Deliver the searchable article reader with inline sentence highlighting, collapsible opinion sections, and full-text search filters
 - [ ] **Phase 5: Polish and Hardening** - Verify production failure modes, run classifier accuracy tests, complete UAT, and rate-limit the search endpoint
 
@@ -68,10 +68,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — NLP dependencies, evaluation dataset, sentence unique constraint migration, test infrastructure
-- [ ] 03-02-PLAN.md — spaCy segmenter and pre-filter (attribution detection + unclear gate) with unit tests
-- [ ] 03-03-PLAN.md — DeBERTa classifier, temperature calibrator, pipeline orchestrator, DB persistence with unit tests
-- [ ] 03-04-PLAN.md — Integration tests, accuracy gate, and post-ingestion classification wiring
+- [x] 03-01-PLAN.md — NLP dependencies, evaluation dataset, sentence unique constraint migration, test infrastructure
+- [x] 03-02-PLAN.md — spaCy segmenter and pre-filter (attribution detection + unclear gate) with unit tests
+- [x] 03-03-PLAN.md — DeBERTa classifier, temperature calibrator, pipeline orchestrator, DB persistence with unit tests
+- [x] 03-04-PLAN.md — Integration tests, accuracy gate, and post-ingestion classification wiring
 
 ### Phase 4: Web Interface
 **Goal**: Users can search the fact-classified article database and read articles with inline sentence highlighting showing exactly which content is factual versus opinion
@@ -106,6 +106,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-23 |
 | 2. Ingestion Pipeline | 4/4 | Complete   | 2026-02-23 |
-| 3. NLP Classification Pipeline | 0/4 | Planned | - |
+| 3. NLP Classification Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 4. Web Interface | 0/TBD | Not started | - |
 | 5. Polish and Hardening | 0/TBD | Not started | - |

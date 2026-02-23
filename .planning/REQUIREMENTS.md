@@ -16,11 +16,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### NLP Classification
 
-- [ ] **NLP-01**: System classifies each sentence as fact, opinion, mixed, or unclear using hybrid NLP (rule-based heuristics + zero-shot transformer)
-- [ ] **NLP-02**: System assigns confidence score (0.0–1.0) to each classified sentence
-- [ ] **NLP-03**: System flags ambiguous content (quotes, satire, breaking news without context) as "unclear" with low confidence
-- [ ] **NLP-04**: System detects attributed speech patterns ("The CEO said X") and routes them through an attribution pre-filter before transformer classification
-- [ ] **NLP-05**: System stores classification results as structured data (sentences child table, not JSON blob) for per-sentence querying
+- [x] **NLP-01**: System classifies each sentence as fact, opinion, mixed, or unclear using hybrid NLP (rule-based heuristics + zero-shot transformer)
+- [x] **NLP-02**: System assigns confidence score (0.0–1.0) to each classified sentence
+- [x] **NLP-03**: System flags ambiguous content (quotes, satire, breaking news without context) as "unclear" with low confidence
+- [x] **NLP-04**: System detects attributed speech patterns ("The CEO said X") and routes them through an attribution pre-filter before transformer classification
+- [x] **NLP-05**: System stores classification results as structured data (sentences child table, not JSON blob) for per-sentence querying
 
 ### Search & Filtering
 
@@ -86,11 +86,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INGEST-02 | Phase 2 | Complete |
 | INGEST-03 | Phase 2 | Complete |
 | INGEST-04 | Phase 2 | Complete |
-| NLP-01 | Phase 3 | Pending |
-| NLP-02 | Phase 3 | Pending |
-| NLP-03 | Phase 3 | Pending |
-| NLP-04 | Phase 3 | Pending |
-| NLP-05 | Phase 3 | Pending |
+| NLP-01 | Phase 3 | Complete |
+| NLP-02 | Phase 3 | Complete |
+| NLP-03 | Phase 3 | Complete |
+| NLP-04 | Phase 3 | Complete |
+| NLP-05 | Phase 3 | Complete |
 | SEARCH-01 | Phase 4 | Pending |
 | SEARCH-02 | Phase 4 | Pending |
 | SEARCH-03 | Phase 4 | Pending |
