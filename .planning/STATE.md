@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Users can search and read news with clear, confidence-scored separation of facts from opinions
-**Current focus:** Phase 2 — Ingestion Pipeline
+**Current focus:** Phase 3 — NLP Classification Pipeline
 
 ## Current Position
 
-Phase: 2 of 5 (Ingestion Pipeline)
-Plan: 4 of 4 in current phase
-Status: Phase Complete
-Last activity: 2026-02-23 — Completed 02-04-PLAN.md (Ingestion pipeline test suite — 25 tests with mocked HTTP and DB)
+Phase: 3 of 5 (NLP Classification Pipeline)
+Plan: 1 of 4 in current phase
+Status: In Progress
+Last activity: 2026-02-23 — Completed 03-01-PLAN.md (NLP deps, eval dataset, sentence unique constraint, test infra)
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
