@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 1 of 5 (Database Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-23 — Roadmap created; all 25 v1 requirements mapped to 5 phases
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-23 — Completed 01-01-PLAN.md (project scaffold + ORM models)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 7%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 5 min
+- Total execution time: 0.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-database-foundation | 1/3 | 5 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+- Last 5 plans: 5 min
 - Trend: —
 
 *Updated after each plan completion*
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - [Pre-Phase]: Sentences stored in child table, not JSON blob on articles row — required for per-sentence querying
 - [Pre-Phase]: APScheduler runs inside FastAPI process with single-worker constraint (--workers 1)
 - [Pre-Phase]: GIN index and tsvector generated column must exist in initial Alembic migration — not retrofittable
+- [Phase 01-database-foundation]: Flat layout: factfeed/ at repo root (not src/); uv init nested layout discarded
+- [Phase 01-database-foundation]: search_vector uses SQLAlchemy Computed(persisted=True) with TSVECTOR — PostgreSQL computes it on INSERT/UPDATE
+- [Phase 01-database-foundation]: Sentence stored as child table (not JSON blob) with label, confidence, position columns and CASCADE FK
 
 ### Pending Todos
 
@@ -60,5 +63,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Roadmap creation complete; ROADMAP.md, STATE.md, and REQUIREMENTS.md traceability written
+Stopped at: Completed 01-database-foundation/01-01-PLAN.md
 Resume file: None

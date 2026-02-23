@@ -40,7 +40,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: PostgreSQL database stores articles and per-sentence classification data
+- [x] **INFRA-01**: PostgreSQL database stores articles and per-sentence classification data
 - [ ] **INFRA-02**: FastAPI backend serves web interface via Jinja2 server-rendered templates
 - [ ] **INFRA-03**: Background scheduler (APScheduler) runs ingestion job on configurable interval
 - [ ] **INFRA-04**: No user data collection; no login or accounts required
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-04 | Phase 4 | Pending |
 | UI-05 | Phase 4 | Pending |
 | UI-06 | Phase 4 | Pending |
-| INFRA-01 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 4 | Pending |
 | INFRA-03 | Phase 2 | Pending |
 | INFRA-04 | Phase 4 | Pending |
