@@ -12,6 +12,9 @@ COPY pyproject.toml uv.lock* ./
 # Install dependencies (no editable install for production)
 RUN uv sync --frozen --no-dev
 
+# Download spaCy English model (after deps, before code for layer caching)
+RUN uv run python -m spacy download en_core_web_sm
+
 # Copy application code
 COPY factfeed/ ./factfeed/
 COPY alembic/ ./alembic/
