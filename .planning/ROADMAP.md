@@ -65,7 +65,13 @@ Plans:
   3. Short or ambiguous sentences (under 30 tokens, satire markers, breaking news without context) receive an "unclear" label rather than a forced fact/opinion classification
   4. Unit tests for the classifier pass and demonstrate 80%+ accuracy on the held-out evaluation set (100+ sentences including hard cases)
   5. Classification results are written to the sentences child table in the database, not stored as JSON on the articles row
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — NLP dependencies, evaluation dataset, sentence unique constraint migration, test infrastructure
+- [ ] 03-02-PLAN.md — spaCy segmenter and pre-filter (attribution detection + unclear gate) with unit tests
+- [ ] 03-03-PLAN.md — DeBERTa classifier, temperature calibrator, pipeline orchestrator, DB persistence with unit tests
+- [ ] 03-04-PLAN.md — Integration tests, accuracy gate, and post-ingestion classification wiring
 
 ### Phase 4: Web Interface
 **Goal**: Users can search the fact-classified article database and read articles with inline sentence highlighting showing exactly which content is factual versus opinion
@@ -100,6 +106,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-23 |
 | 2. Ingestion Pipeline | 4/4 | Complete   | 2026-02-23 |
-| 3. NLP Classification Pipeline | 0/TBD | Not started | - |
+| 3. NLP Classification Pipeline | 0/4 | Planned | - |
 | 4. Web Interface | 0/TBD | Not started | - |
 | 5. Polish and Hardening | 0/TBD | Not started | - |
