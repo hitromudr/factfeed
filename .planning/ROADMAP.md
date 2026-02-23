@@ -12,7 +12,7 @@ FactFeed is built in five phases that follow a strict dependency chain. The data
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Database Foundation** - Establish the PostgreSQL schema with all indexes, child tables, and columns required before any data is inserted
+- [x] **Phase 1: Database Foundation** - Establish the PostgreSQL schema with all indexes, child tables, and columns required before any data is inserted (completed 2026-02-23)
 - [ ] **Phase 2: Ingestion Pipeline** - Fetch, deduplicate, and persist real article content from all five target RSS sources on a scheduled background job
 - [ ] **Phase 3: NLP Classification Pipeline** - Build and validate the hybrid fact/opinion/mixed/unclear classifier with calibrated confidence scores before the web layer depends on its output
 - [ ] **Phase 4: Web Interface** - Deliver the searchable article reader with inline sentence highlighting, collapsible opinion sections, and full-text search filters
@@ -92,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 2/3 | In Progress|  |
+| 1. Database Foundation | 3/3 | Complete   | 2026-02-23 |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
 | 3. NLP Classification Pipeline | 0/TBD | Not started | - |
 | 4. Web Interface | 0/TBD | Not started | - |
