@@ -47,7 +47,13 @@ Plans:
   3. A malformed feed, encoding failure, or unreachable source logs an error and continues processing remaining sources without crashing
   4. Each persisted article has a non-empty body text field extracted from the fetched content
   5. APScheduler triggers the fetch-and-persist cycle on a configurable interval inside the FastAPI process with a single-worker guard active
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Schema migration (add is_partial, author, lead_image_url, body_html columns) + install Phase 2 dependencies + config
+- [ ] 02-02-PLAN.md — Core ingestion modules: RSS fetcher, article extractor (trafilatura), URL deduplicator, source definitions
+- [ ] 02-03-PLAN.md — Runner orchestrator, persister, structured logging, APScheduler integration, FastAPI lifespan
+- [ ] 02-04-PLAN.md — Ingestion pipeline test suite (unit + integration tests with mocked HTTP and DB)
 
 ### Phase 3: NLP Classification Pipeline
 **Goal**: Every ingested article's sentences are classified as fact, opinion, mixed, or unclear with calibrated confidence scores that are accurate enough to display to users
@@ -93,7 +99,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-23 |
-| 2. Ingestion Pipeline | 0/TBD | Not started | - |
+| 2. Ingestion Pipeline | 0/4 | Not started | - |
 | 3. NLP Classification Pipeline | 0/TBD | Not started | - |
 | 4. Web Interface | 0/TBD | Not started | - |
 | 5. Polish and Hardening | 0/TBD | Not started | - |
