@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, ForeignKey, Computed, Index
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, Computed, Index
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -25,6 +25,10 @@ class Article(Base):
     url_hash = Column(String(64), nullable=False, unique=True)
     title = Column(Text, nullable=False)
     body = Column(Text, nullable=True)
+    author = Column(Text, nullable=True)
+    lead_image_url = Column(Text, nullable=True)
+    body_html = Column(Text, nullable=True)
+    is_partial = Column(Boolean, nullable=False, server_default="false")
     published_at = Column(DateTime(timezone=True), nullable=True)
     source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
     search_vector = Column(
