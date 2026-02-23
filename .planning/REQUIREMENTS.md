@@ -82,37 +82,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INGEST-01 | — | Pending |
-| INGEST-02 | — | Pending |
-| INGEST-03 | — | Pending |
-| INGEST-04 | — | Pending |
-| NLP-01 | — | Pending |
-| NLP-02 | — | Pending |
-| NLP-03 | — | Pending |
-| NLP-04 | — | Pending |
-| NLP-05 | — | Pending |
-| SEARCH-01 | — | Pending |
-| SEARCH-02 | — | Pending |
-| SEARCH-03 | — | Pending |
-| SEARCH-04 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
-| UI-05 | — | Pending |
-| UI-06 | — | Pending |
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| INFRA-05 | — | Pending |
-| INFRA-06 | — | Pending |
+| INGEST-01 | Phase 2 | Pending |
+| INGEST-02 | Phase 2 | Pending |
+| INGEST-03 | Phase 2 | Pending |
+| INGEST-04 | Phase 2 | Pending |
+| NLP-01 | Phase 3 | Pending |
+| NLP-02 | Phase 3 | Pending |
+| NLP-03 | Phase 3 | Pending |
+| NLP-04 | Phase 3 | Pending |
+| NLP-05 | Phase 3 | Pending |
+| SEARCH-01 | Phase 4 | Pending |
+| SEARCH-02 | Phase 4 | Pending |
+| SEARCH-03 | Phase 4 | Pending |
+| SEARCH-04 | Phase 4 | Pending |
+| UI-01 | Phase 4 | Pending |
+| UI-02 | Phase 4 | Pending |
+| UI-03 | Phase 4 | Pending |
+| UI-04 | Phase 4 | Pending |
+| UI-05 | Phase 4 | Pending |
+| UI-06 | Phase 4 | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 4 | Pending |
+| INFRA-03 | Phase 2 | Pending |
+| INFRA-04 | Phase 4 | Pending |
+| INFRA-05 | Phase 5 | Pending |
+| INFRA-06 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 after initial definition*
+*Last updated: 2026-02-23 after roadmap creation — all 25 requirements mapped*
