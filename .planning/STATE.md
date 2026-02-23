@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 3 of 5 (NLP Classification Pipeline)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In Progress
-Last activity: 2026-02-23 — Completed 03-02-PLAN.md (spaCy segmenter and pre-filter with attribution detection + unclear gate)
+Last activity: 2026-02-23 — Completed 03-03-PLAN.md (DeBERTa classifier, calibrator, pipeline orchestrator, DB persistence)
 
-Progress: [██████░░░░] 55%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
