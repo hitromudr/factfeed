@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Ingestion
 
-- [ ] **INGEST-01**: System fetches articles from 5 RSS sources (BBC, Reuters, AP, NPR, Al Jazeera) on a scheduled background job
-- [ ] **INGEST-02**: System handles API rate limits, invalid sources, and fetch failures gracefully without crashing
-- [ ] **INGEST-03**: System deduplicates articles by URL to prevent re-processing
-- [ ] **INGEST-04**: System extracts article body text from fetched content for NLP processing
+- [x] **INGEST-01**: System fetches articles from 5 RSS sources (BBC, Reuters, AP, NPR, Al Jazeera) on a scheduled background job
+- [x] **INGEST-02**: System handles API rate limits, invalid sources, and fetch failures gracefully without crashing
+- [x] **INGEST-03**: System deduplicates articles by URL to prevent re-processing
+- [x] **INGEST-04**: System extracts article body text from fetched content for NLP processing
 
 ### NLP Classification
 
@@ -42,7 +42,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **INFRA-01**: PostgreSQL database stores articles and per-sentence classification data
 - [ ] **INFRA-02**: FastAPI backend serves web interface via Jinja2 server-rendered templates
-- [ ] **INFRA-03**: Background scheduler (APScheduler) runs ingestion job on configurable interval
+- [x] **INFRA-03**: Background scheduler (APScheduler) runs ingestion job on configurable interval
 - [ ] **INFRA-04**: No user data collection; no login or accounts required
 - [ ] **INFRA-05**: Unit tests for classifier accuracy (target 80%+ on evaluation dataset)
 - [ ] **INFRA-06**: Automated API response tests and manual UAT on 10 articles
@@ -82,10 +82,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INGEST-01 | Phase 2 | Pending |
-| INGEST-02 | Phase 2 | Pending |
-| INGEST-03 | Phase 2 | Pending |
-| INGEST-04 | Phase 2 | Pending |
+| INGEST-01 | Phase 2 | Complete |
+| INGEST-02 | Phase 2 | Complete |
+| INGEST-03 | Phase 2 | Complete |
+| INGEST-04 | Phase 2 | Complete |
 | NLP-01 | Phase 3 | Pending |
 | NLP-02 | Phase 3 | Pending |
 | NLP-03 | Phase 3 | Pending |
@@ -103,7 +103,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-06 | Phase 4 | Pending |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 4 | Pending |
-| INFRA-03 | Phase 2 | Pending |
+| INFRA-03 | Phase 2 | Complete |
 | INFRA-04 | Phase 4 | Pending |
 | INFRA-05 | Phase 5 | Pending |
 | INFRA-06 | Phase 5 | Pending |

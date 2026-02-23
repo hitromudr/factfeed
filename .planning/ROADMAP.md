@@ -13,7 +13,7 @@ FactFeed is built in five phases that follow a strict dependency chain. The data
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Database Foundation** - Establish the PostgreSQL schema with all indexes, child tables, and columns required before any data is inserted (completed 2026-02-23)
-- [ ] **Phase 2: Ingestion Pipeline** - Fetch, deduplicate, and persist real article content from all five target RSS sources on a scheduled background job
+- [x] **Phase 2: Ingestion Pipeline** - Fetch, deduplicate, and persist real article content from all five target RSS sources on a scheduled background job (completed 2026-02-23)
 - [ ] **Phase 3: NLP Classification Pipeline** - Build and validate the hybrid fact/opinion/mixed/unclear classifier with calibrated confidence scores before the web layer depends on its output
 - [ ] **Phase 4: Web Interface** - Deliver the searchable article reader with inline sentence highlighting, collapsible opinion sections, and full-text search filters
 - [ ] **Phase 5: Polish and Hardening** - Verify production failure modes, run classifier accuracy tests, complete UAT, and rate-limit the search endpoint
@@ -50,10 +50,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Schema migration (add is_partial, author, lead_image_url, body_html columns) + install Phase 2 dependencies + config
-- [ ] 02-02-PLAN.md — Core ingestion modules: RSS fetcher, article extractor (trafilatura), URL deduplicator, source definitions
-- [ ] 02-03-PLAN.md — Runner orchestrator, persister, structured logging, APScheduler integration, FastAPI lifespan
-- [ ] 02-04-PLAN.md — Ingestion pipeline test suite (unit + integration tests with mocked HTTP and DB)
+- [x] 02-01-PLAN.md — Schema migration (add is_partial, author, lead_image_url, body_html columns) + install Phase 2 dependencies + config
+- [x] 02-02-PLAN.md — Core ingestion modules: RSS fetcher, article extractor (trafilatura), URL deduplicator, source definitions
+- [x] 02-03-PLAN.md — Runner orchestrator, persister, structured logging, APScheduler integration, FastAPI lifespan
+- [x] 02-04-PLAN.md — Ingestion pipeline test suite (unit + integration tests with mocked HTTP and DB)
 
 ### Phase 3: NLP Classification Pipeline
 **Goal**: Every ingested article's sentences are classified as fact, opinion, mixed, or unclear with calibrated confidence scores that are accurate enough to display to users
@@ -99,7 +99,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Database Foundation | 3/3 | Complete   | 2026-02-23 |
-| 2. Ingestion Pipeline | 0/4 | Not started | - |
+| 2. Ingestion Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 3. NLP Classification Pipeline | 0/TBD | Not started | - |
 | 4. Web Interface | 0/TBD | Not started | - |
 | 5. Polish and Hardening | 0/TBD | Not started | - |
