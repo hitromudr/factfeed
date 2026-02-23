@@ -30,7 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The sentences table exists as a child of articles (not a JSON column on articles) with label, confidence, and position columns
   4. The articles table has a `url_hash` column with a unique constraint for deduplication
   5. Docker Compose brings up postgres, migrate, and app services in correct startup order
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffold + SQLAlchemy ORM models (Article, Sentence, Source) and async session factory
+- [ ] 01-02-PLAN.md — Alembic async migration (hand-written initial schema) + Docker Compose startup ordering
+- [ ] 01-03-PLAN.md — pytest smoke tests verifying schema structure and GENERATED column behavior
 
 ### Phase 2: Ingestion Pipeline
 **Goal**: Real article content flows from all five RSS sources into the database continuously without manual intervention
@@ -87,7 +92,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Database Foundation | 0/TBD | Not started | - |
+| 1. Database Foundation | 0/3 | Not started | - |
 | 2. Ingestion Pipeline | 0/TBD | Not started | - |
 | 3. NLP Classification Pipeline | 0/TBD | Not started | - |
 | 4. Web Interface | 0/TBD | Not started | - |
