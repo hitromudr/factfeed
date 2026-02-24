@@ -84,7 +84,13 @@ Plans:
   4. Hovering over a highlighted sentence shows its confidence score (displayed as High/Medium/Low, not raw decimal)
   5. Opinion sentences are collapsed by default behind a "Show opinion content" control; expanding the control reveals them inline
   6. The interface is usable on a mobile viewport without horizontal scrolling and no user account or login is required to access any feature
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — FastAPI web infrastructure (Jinja2 templates, static files, routes, CSS, HTMX setup)
+- [ ] 04-02-PLAN.md — Search page with FTS, source/date filters, fact-density sort, HTMX live search
+- [ ] 04-03-PLAN.md — Article detail with inline sentence highlighting, confidence tooltips, collapsible opinions
+- [ ] 04-04-PLAN.md — Web route integration tests covering all Phase 4 requirements
 
 ### Phase 5: Polish and Hardening
 **Goal**: The integrated system passes accuracy benchmarks, handles edge cases that only appear at production volume, and is safe to run continuously
