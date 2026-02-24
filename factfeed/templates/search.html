@@ -4,30 +4,65 @@
 
 {% block content %}
 <section class="search-section">
-    <form id="search-form" hx-get="/search" hx-target="#results" hx-trigger="submit" hx-include="[name]">
-        <div class="search-bar">
-            <input type="text" name="q" value="{{ q }}" placeholder="Search articles..." autocomplete="off">
-            <button type="submit">Search</button>
+    <div class="search-bar">
+        <input type="search" name="q" value="{{ q }}" placeholder="Search articles..."
+               autocomplete="off"
+               hx-get="/search"
+               hx-target="#results"
+               hx-swap="innerHTML"
+               hx-trigger="keyup changed delay:400ms, search"
+               hx-include="[name='source'],[name='from'],[name='sort']"
+               hx-push-url="true">
+        <button type="button"
+                hx-get="/search"
+                hx-target="#results"
+                hx-swap="innerHTML"
+                hx-include="[name='q'],[name='source'],[name='from'],[name='sort']"
+                hx-push-url="true">Search</button>
+    </div>
+    <div class="filter-row">
+        <select name="source"
+                hx-get="/search"
+                hx-target="#results"
+                hx-swap="innerHTML"
+                hx-trigger="change"
+                hx-include="[name='q'],[name='from'],[name='sort']"
+                hx-push-url="true">
+            <option value="">All sources</option>
+            {% for s in sources %}
+            <option value="{{ s.id }}" {% if source == s.id %}selected{% endif %}>{{ s.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="from"
+                hx-get="/search"
+                hx-target="#results"
+                hx-swap="innerHTML"
+                hx-trigger="change"
+                hx-include="[name='q'],[name='source'],[name='sort']"
+                hx-push-url="true">
+            <option value="" {% if not from_filter %}selected{% endif %}>Any time</option>
+            <option value="24h" {% if from_filter == '24h' %}selected{% endif %}>Last 24 hours</option>
+            <option value="7d" {% if from_filter == '7d' %}selected{% endif %}>Last 7 days</option>
+            <option value="30d" {% if from_filter == '30d' %}selected{% endif %}>Last 30 days</option>
+        </select>
+        <div class="sort-toggle">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <button type="button" class="sort-btn {% if sort != 'recent' %}active{% endif %}"
+                    hx-get="/search"
+                    hx-target="#results"
+                    hx-swap="innerHTML"
+                    hx-vals='{"sort": "facts"}'
+                    hx-include="[name='q'],[name='source'],[name='from']"
+                    hx-push-url="true">Fact density</button>
+            <button type="button" class="sort-btn {% if sort == 'recent' %}active{% endif %}"
+                    hx-get="/search"
+                    hx-target="#results"
+                    hx-swap="innerHTML"
+                    hx-vals='{"sort": "recent"}'
+                    hx-include="[name='q'],[name='source'],[name='from']"
+                    hx-push-url="true">Most recent</button>
         </div>
-        <div class="filter-row">
-            <select name="source">
-                <option value="">All sources</option>
-                {% for s in sources %}
-                <option value="{{ s.id }}" {% if source == s.id %}selected{% endif %}>{{ s.name }}</option>
-                {% endfor %}
-            </select>
-            <select name="from">
-                <option value="" {% if not from_filter %}selected{% endif %}>Any time</option>
-                <option value="24h" {% if from_filter == '24h' %}selected{% endif %}>Last 24 hours</option>
-                <option value="7d" {% if from_filter == '7d' %}selected{% endif %}>Last 7 days</option>
-                <option value="30d" {% if from_filter == '30d' %}selected{% endif %}>Last 30 days</option>
-            </select>
-            <div class="sort-toggle">
-                <button type="submit" name="sort" value="facts" class="sort-btn {% if sort != 'recent' %}active{% endif %}">Fact density</button>
-                <button type="submit" name="sort" value="recent" class="sort-btn {% if sort == 'recent' %}active{% endif %}">Most recent</button>
-            </div>
-        </div>
-    </form>
+    </div>
 </section>
 
 <section id="results">
