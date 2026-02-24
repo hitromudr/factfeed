@@ -25,38 +25,30 @@
     </header>
 
     <div class="article-body">
-        {% if sentences %}
-            {% set ns = namespace(has_opinions=false) %}
-            {% for s in sentences %}
-                {% if s.label == 'opinion' %}
-                    {% set ns.has_opinions = true %}
-                {% endif %}
+        {% if non_opinion_sentences or opinion_sentences %}
+            {% for sentence in non_opinion_sentences %}
+                {% set conf_label = "High" if sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
+                <span class="sentence {{ sentence.label or 'unclear' }}" title="{{ conf_label }} confidence">{{ sentence.text }} </span>
             {% endfor %}
-
-            {# Render non-opinion sentences inline #}
-            {% for s in sentences %}
-                {% if s.label != 'opinion' %}
-                <span class="sentence {{ s.label or 'unclear' }}" title="{{ s.label|default('unclear')|capitalize }}: {{ confidence_label(s.confidence) }} confidence">{{ s.text }} </span>
-                {% endif %}
-            {% endfor %}
-
-            {# Collapsible opinion section #}
-            {% if ns.has_opinions %}
-            <details class="opinion-section">
-                <summary>Show opinion content ({{ opinion_sentences|length }} sentences)</summary>
-                <div class="opinion-content">
-                    {% for s in opinion_sentences %}
-                    <span class="sentence opinion" title="Opinion: {{ confidence_label(s.confidence) }} confidence">{{ s.text }} </span>
-                    {% endfor %}
-                </div>
-            </details>
-            {% endif %}
         {% else %}
             <div class="no-classification">
-                {{ article.body or "No content available." }}
+                <p>{{ article.body or "No content available." }}</p>
+                <p class="note">Classification pending.</p>
             </div>
         {% endif %}
     </div>
+
+    {% if opinion_sentences %}
+    <details class="opinion-section">
+        <summary class="opinion-toggle">Show opinion content ({{ opinion_count }} sentence{{ 's' if opinion_count != 1 else '' }})</summary>
+        <div class="opinion-content">
+            {% for sentence in opinion_sentences %}
+                {% set conf_label = "High" if sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
+                <span class="sentence opinion" title="{{ conf_label }} confidence">{{ sentence.text }} </span>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
 
     <footer class="article-footer">
         <a href="/" class="back-link">&larr; Back to search</a>

@@ -1,6 +1,6 @@
 """Article detail route with sentence highlighting and collapsible opinions."""
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -19,9 +19,9 @@ def _confidence_label(confidence: float | None) -> str:
     """Convert raw confidence float to High/Medium/Low display label."""
     if confidence is None:
         return "Unknown"
-    if confidence >= 0.8:
+    if confidence >= 0.7:
         return "High"
-    if confidence >= 0.5:
+    if confidence >= 0.4:
         return "Medium"
     return "Low"
 
@@ -42,27 +42,18 @@ async def article_detail(
     article = result.scalar_one_or_none()
 
     if article is None:
-        return HTMLResponse(
-            content=templates.TemplateResponse(
-                "base.html",
-                {"request": request, "error": "Article not found"},
-            ).body,
-            status_code=404,
-        )
+        raise HTTPException(status_code=404, detail="Article not found")
 
     # Split sentences by type for template rendering
-    fact_sentences = []
+    non_opinion_sentences = []
     opinion_sentences = []
-    other_sentences = []
 
     for s in article.sentences:
         s.confidence_label = _confidence_label(s.confidence)
-        if s.label == "fact":
-            fact_sentences.append(s)
-        elif s.label == "opinion":
+        if s.label == "opinion":
             opinion_sentences.append(s)
         else:
-            other_sentences.append(s)
+            non_opinion_sentences.append(s)
 
     return templates.TemplateResponse(
         "article.html",
@@ -70,9 +61,9 @@ async def article_detail(
             "request": request,
             "article": article,
             "sentences": article.sentences,
-            "fact_sentences": fact_sentences,
+            "non_opinion_sentences": non_opinion_sentences,
             "opinion_sentences": opinion_sentences,
-            "other_sentences": other_sentences,
+            "opinion_count": len(opinion_sentences),
             "confidence_label": _confidence_label,
         },
     )
