@@ -1,0 +1,26 @@
+{% if articles %}
+{% for article in articles %}
+<div class="article-card">
+    <h2><a href="/article/{{ article.id }}">{{ article.title }}</a></h2>
+    <div class="article-meta">
+        {% if article.source %}
+        <span class="source-name">{{ article.source.name }}</span>
+        {% endif %}
+        {% if article.published_at %}
+        <span class="date">{{ article.published_at.strftime('%b %d, %Y') }}</span>
+        {% endif %}
+    </div>
+    {% if article.body %}
+    <p class="excerpt">{{ article.body[:200] }}{% if article.body|length > 200 %}...{% endif %}</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% else %}
+<div class="no-results">
+    {% if q %}
+    <p>No articles found for "{{ q }}".</p>
+    {% else %}
+    <p>No articles available yet. Articles will appear as they are ingested.</p>
+    {% endif %}
+</div>
+{% endif %}

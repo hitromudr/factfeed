@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} - FactFeed{% endblock %}
+
+{% block content %}
+<article class="article-detail">
+    <header class="article-header">
+        <h1>{{ article.title }}</h1>
+        <div class="article-meta">
+            {% if article.source %}
+            <span class="source-name">{{ article.source.name }}</span>
+            {% endif %}
+            {% if article.author %}
+            <span class="author">by {{ article.author }}</span>
+            {% endif %}
+            {% if article.published_at %}
+            <span class="date">{{ article.published_at.strftime('%B %d, %Y') }}</span>
+            {% endif %}
+        </div>
+        <div class="legend">
+            <span class="legend-item"><span class="legend-swatch fact"></span> Fact</span>
+            <span class="legend-item"><span class="legend-swatch opinion"></span> Opinion</span>
+            <span class="legend-item"><span class="legend-swatch mixed"></span> Mixed/Unclear</span>
+        </div>
+    </header>
+
+    <div class="article-body">
+        {% if sentences %}
+            {% set ns = namespace(has_opinions=false) %}
+            {% for s in sentences %}
+                {% if s.label == 'opinion' %}
+                    {% set ns.has_opinions = true %}
+                {% endif %}
+            {% endfor %}
+
+            {# Render non-opinion sentences inline #}
+            {% for s in sentences %}
+                {% if s.label != 'opinion' %}
+                <span class="sentence {{ s.label or 'unclear' }}" title="{{ s.label|default('unclear')|capitalize }}: {{ confidence_label(s.confidence) }} confidence">{{ s.text }} </span>
+                {% endif %}
+            {% endfor %}
+
+            {# Collapsible opinion section #}
+            {% if ns.has_opinions %}
+            <details class="opinion-section">
+                <summary>Show opinion content ({{ opinion_sentences|length }} sentences)</summary>
+                <div class="opinion-content">
+                    {% for s in opinion_sentences %}
+                    <span class="sentence opinion" title="Opinion: {{ confidence_label(s.confidence) }} confidence">{{ s.text }} </span>
+                    {% endfor %}
+                </div>
+            </details>
+            {% endif %}
+        {% else %}
+            <div class="no-classification">
+                {{ article.body or "No content available." }}
+            </div>
+        {% endif %}
+    </div>
+
+    <footer class="article-footer">
+        <a href="/" class="back-link">&larr; Back to search</a>
+        {% if article.url %}
+        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="original-link">Read original</a>
+        {% endif %}
+    </footer>
+</article>
+{% endblock %}

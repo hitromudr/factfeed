@@ -1,12 +1,16 @@
 """FastAPI app with lifespan integrating scheduler, httpx client, and source seeding."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import httpx
 import structlog
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from factfeed.config import settings
+from factfeed.web.routes import search as search_routes
+from factfeed.web.routes import article as article_routes
 from factfeed.db.session import AsyncSessionLocal
 from factfeed.ingestion.logging import configure_logging
 from factfeed.ingestion.persister import seed_sources
@@ -72,6 +76,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="FactFeed", lifespan=lifespan)
+
+# Static files
+_static_dir = Path(__file__).resolve().parent.parent / "static"
+app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
+
+# Route modules
+app.include_router(search_routes.router)
+app.include_router(article_routes.router)
 
 
 @app.get("/health")
