@@ -101,7 +101,11 @@ Plans:
   2. Manual UAT on 10 real articles confirms inline highlighting is correct and the collapsible opinion control works as expected
   3. Automated API response tests cover the search and article detail endpoints and pass on a clean environment
   4. Running FastAPI with two Gunicorn workers does not cause the ingestion job to execute twice (APScheduler single-worker constraint is verified by test or guard)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Rate limiting (slowapi on search) + accuracy report artifact (JSON output)
+- [ ] 05-02-PLAN.md — Multi-worker APScheduler safety tests + UAT script for 10 real articles
 
 ## Progress
 
@@ -114,4 +118,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Ingestion Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 3. NLP Classification Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 4. Web Interface | 0/TBD | Not started | - |
-| 5. Polish and Hardening | 0/TBD | Not started | - |
+| 5. Polish and Hardening | 0/2 | Not started | - |
