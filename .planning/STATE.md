@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Users can search and read news with clear, confidence-scored separation of facts from opinions
-**Current focus:** Phase 4 — Web Interface
+**Current focus:** Phase 5 — Polish and Hardening (COMPLETE)
 
 ## Current Position
 
-Phase: 4 of 5 (Web Interface)
-Plan: 1 of 4 in current phase
-Status: In Progress
-Last activity: 2026-02-24 — Completed 04-01-PLAN.md (FastAPI web infrastructure)
+Phase: 5 of 5 (Polish and Hardening)
+Plan: 2 of 2 in current phase
+Status: Complete
+Last activity: 2026-02-25 — Completed 05-02-PLAN.md (multi-worker safety tests + UAT script)
 
-Progress: [████████░░] 70%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 11
 - Average duration: 4 min
-- Total execution time: 0.5 hours
+- Total execution time: ~0.75 hours
 
 **By Phase:**
 
@@ -29,6 +29,9 @@ Progress: [████████░░] 70%
 |-------|-------|-------|----------|
 | 01-database-foundation | 3/3 | 12 min | 4 min |
 | 02-ingestion-pipeline | 4/4 | 15 min | 4 min |
+| 03-nlp-classification | (completed) | — | — |
+| 04-web-interface | 4/4 | ~16 min | 4 min |
+| 05-polish-and-hardening | 2/2 | ~6 min | 3 min |
 
 **Recent Trend:**
 - Last 5 plans: 2 min, 3 min, 4 min, 5 min, 3 min
@@ -63,10 +66,13 @@ Recent decisions affecting current work:
 - [Phase 02-ingestion-pipeline]: save_article uses INSERT ON CONFLICT DO NOTHING on url_hash for atomic dedup
 - [Phase 02-ingestion-pipeline]: httpx.Timeout connect=5s (fail fast), read=30s (generous for slow news sites)
 - [Phase 02-ingestion-pipeline]: Source seeding happens before scheduler starts so source_id FK is always valid
+- [Phase 05-polish-and-hardening]: UAT tests use AsyncSessionLocal (real DB) rather than rollback test session — tests against actual ingested content
+- [Phase 05-polish-and-hardening]: test_uat_search_finds_articles issues warnings on FTS miss rather than hard failures — stop-word-only titles exist
+- [Phase 05-polish-and-hardening]: Multi-worker tests inspect scheduler config only; scheduler never started in tests
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
@@ -76,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: Completed 02-ingestion-pipeline/02-04-PLAN.md
+Last session: 2026-02-25
+Stopped at: Completed 05-polish-and-hardening/05-02-PLAN.md
 Resume file: None
