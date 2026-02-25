@@ -19,6 +19,7 @@ dependencies = [
     "torch>=2.5.0",
     "scikit-learn>=1.5.0",
     "scipy>=1.12.0",
+    "slowapi>=0.1.9",
 ]
 
 [project.optional-dependencies]
@@ -29,7 +30,11 @@ dev = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-markers = ["slow: marks tests that load the real transformer model (deselect with '-m not slow')"]
+addopts = "-m 'not slow and not uat'"
+markers = [
+    "slow: marks tests that load the real transformer model (deselect with '-m not slow')",
+    "uat: marks UAT tests that require a seeded database (deselect with '-m not uat')",
+]
 
 [build-system]
 requires = ["hatchling"]

@@ -7,8 +7,11 @@ import httpx
 import structlog
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from factfeed.config import settings
+from factfeed.web.limiter import limiter
 from factfeed.web.routes import search as search_routes
 from factfeed.web.routes import article as article_routes
 from factfeed.db.session import AsyncSessionLocal
@@ -76,6 +79,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="FactFeed", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Static files
 _static_dir = Path(__file__).resolve().parent.parent / "static"

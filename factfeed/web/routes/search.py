@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Source
 from factfeed.web.deps import get_db
+from factfeed.web.limiter import limiter
 
 router = APIRouter()
 
@@ -85,6 +86,7 @@ async def search_articles(
 
 
 @router.get("/")
+@limiter.limit("30/minute")
 async def search_page(
     request: Request,
     q: str = "",
@@ -118,6 +120,7 @@ async def search_page(
 
 
 @router.get("/search")
+@limiter.limit("30/minute")
 async def search_endpoint(
     request: Request,
     q: str = "",
