@@ -44,7 +44,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **INFRA-02**: FastAPI backend serves web interface via Jinja2 server-rendered templates
 - [x] **INFRA-03**: Background scheduler (APScheduler) runs ingestion job on configurable interval
 - [ ] **INFRA-04**: No user data collection; no login or accounts required
-- [ ] **INFRA-05**: Unit tests for classifier accuracy (target 80%+ on evaluation dataset)
+- [x] **INFRA-05**: Unit tests for classifier accuracy (target 80%+ on evaluation dataset)
 - [x] **INFRA-06**: Automated API response tests and manual UAT on 10 articles
 
 ## v2 Requirements
@@ -105,7 +105,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-02 | Phase 4 | Pending |
 | INFRA-03 | Phase 2 | Complete |
 | INFRA-04 | Phase 4 | Pending |
-| INFRA-05 | Phase 5 | Pending |
+| INFRA-05 | Phase 5 | Complete |
 | INFRA-06 | Phase 5 | Complete |
 
 **Coverage:**

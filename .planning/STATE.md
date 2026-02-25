@@ -38,6 +38,7 @@ Progress: [██████████] 100%
 - Trend: stable
 
 *Updated after each plan completion*
+| Phase 05-polish-and-hardening P01 | 6 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Recent decisions affecting current work:
 - [Phase 05-polish-and-hardening]: UAT tests use AsyncSessionLocal (real DB) rather than rollback test session — tests against actual ingested content
 - [Phase 05-polish-and-hardening]: test_uat_search_finds_articles issues warnings on FTS miss rather than hard failures — stop-word-only titles exist
 - [Phase 05-polish-and-hardening]: Multi-worker tests inspect scheduler config only; scheduler never started in tests
+- [Phase 05-polish-and-hardening]: Limiter singleton placed in factfeed/web/limiter.py to avoid circular import between main.py and search routes
+- [Phase 05-polish-and-hardening]: Rate limit test isolation via limiter._limiter.storage.reset() — decorator binds to singleton at import time, not app.state.limiter
 
 ### Pending Todos
 

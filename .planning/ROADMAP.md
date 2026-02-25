@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Ingestion Pipeline** - Fetch, deduplicate, and persist real article content from all five target RSS sources on a scheduled background job (completed 2026-02-23)
 - [x] **Phase 3: NLP Classification Pipeline** - Build and validate the hybrid fact/opinion/mixed/unclear classifier with calibrated confidence scores before the web layer depends on its output (completed 2026-02-23)
 - [ ] **Phase 4: Web Interface** - Deliver the searchable article reader with inline sentence highlighting, collapsible opinion sections, and full-text search filters
-- [ ] **Phase 5: Polish and Hardening** - Verify production failure modes, run classifier accuracy tests, complete UAT, and rate-limit the search endpoint
+- [x] **Phase 5: Polish and Hardening** - Verify production failure modes, run classifier accuracy tests, complete UAT, and rate-limit the search endpoint (completed 2026-02-25)
 
 ## Phase Details
 
@@ -118,4 +118,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Ingestion Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 3. NLP Classification Pipeline | 4/4 | Complete   | 2026-02-23 |
 | 4. Web Interface | 0/TBD | Not started | - |
-| 5. Polish and Hardening | 1/2 | In Progress|  |
+| 5. Polish and Hardening | 2/2 | Complete   | 2026-02-25 |
