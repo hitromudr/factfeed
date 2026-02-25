@@ -6,7 +6,9 @@ Includes:
 - Accuracy gate test (loads real DeBERTa model — marked slow)
 """
 
+import json
 import pytest
+from pathlib import Path
 
 from factfeed.nlp.pipeline import SentenceResult, classify_article
 
@@ -217,6 +219,35 @@ def test_evaluation_set_accuracy():
         lbl_acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
         print(f"  {lbl:12s}: {stats['correct']}/{stats['total']} = {lbl_acc:.1%}")
     print(f"{'='*60}")
+
+    # Save machine-readable JSON report artifact
+    report = {
+        "overall_accuracy": round(overall_accuracy, 4),
+        "total": total,
+        "correct": correct,
+        "threshold": 0.80,
+        "passed": overall_accuracy >= 0.80,
+        "per_category": {
+            cat: {
+                "correct": stats["correct"],
+                "total": stats["total"],
+                "accuracy": round(stats["correct"] / stats["total"], 4) if stats["total"] > 0 else 0.0,
+            }
+            for cat, stats in sorted(per_category.items())
+        },
+        "per_label": {
+            lbl: {
+                "correct": stats["correct"],
+                "total": stats["total"],
+                "accuracy": round(stats["correct"] / stats["total"], 4) if stats["total"] > 0 else 0.0,
+            }
+            for lbl, stats in sorted(per_label.items())
+        },
+    }
+    report_path = Path(__file__).resolve().parents[2] / "reports" / "accuracy_report.json"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(json.dumps(report, indent=2))
+    print(f"Accuracy report saved to: {report_path}")
 
     assert overall_accuracy >= 0.80, (
         f"Accuracy {overall_accuracy:.1%} is below 80% target. "
