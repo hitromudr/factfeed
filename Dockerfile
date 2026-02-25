@@ -13,8 +13,8 @@ COPY factfeed/ ./factfeed/
 # Install dependencies
 RUN uv sync --frozen --no-dev
 
-# Download spaCy English model (after deps, before code for layer caching)
-RUN uv run python -m spacy download en_core_web_sm
+# Download spaCy English model (pip needed internally by spacy download)
+RUN uv pip install pip && uv run python -m spacy download en_core_web_sm
 
 # Copy application code
 COPY factfeed/ ./factfeed/
