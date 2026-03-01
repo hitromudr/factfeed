@@ -12,7 +12,6 @@ from factfeed.nlp.classifier import (
 )
 from factfeed.nlp.pipeline import SentenceResult, classify_article
 
-
 # ---------------------------------------------------------------------------
 # Test helpers
 # ---------------------------------------------------------------------------
@@ -158,6 +157,42 @@ def test_classify_article_prefilter_unclear():
     assert len(unclear) >= 1
 
 
+def test_classify_multilingual_sentences(mock_zs_pipeline):
+    """Test that Spanish and Russian sentences can be classified."""
+    from factfeed.nlp.classifier import classify_sentence
+
+    spanish_text = "El gobierno anunció nuevas medidas."
+    result_es = classify_sentence(spanish_text, mock_zs_pipeline)
+    assert result_es["label"] in ["fact", "opinion"]
+    assert 0.0 <= result_es["raw_confidence"] <= 1.0
+
+    russian_text = "Фондовый рынок значительно упал."
+    result_ru = classify_sentence(russian_text, mock_zs_pipeline)
+    assert result_ru["label"] in ["fact", "opinion"]
+    assert 0.0 <= result_ru["raw_confidence"] <= 1.0
+
+
+import pytest
+
+
+@pytest.mark.slow
+def test_multilingual_real_model():
+    """Verify that the real model successfully processes Spanish and Russian text."""
+    from factfeed.nlp.classifier import classify_sentence, create_classifier
+
+    pipeline = create_classifier()
+
+    res_es = classify_sentence(
+        "El presidente anunció nuevas políticas económicas.", pipeline
+    )
+    assert res_es["label"] in ["fact", "opinion"]
+    assert 0.0 <= res_es["raw_confidence"] <= 1.0
+
+    res_ru = classify_sentence("Акции компании упали на десять процентов.", pipeline)
+    assert res_ru["label"] in ["fact", "opinion"]
+    assert 0.0 <= res_ru["raw_confidence"] <= 1.0
+
+
 def test_classify_article_confidence_clamped():
     """Mock returns 0.99 confidence -> pipeline result confidence <= 0.95."""
     body = (
@@ -174,9 +209,7 @@ def test_classify_article_confidence_clamped():
 
 def test_classify_article_positions_sequential():
     """Positions are 0, 1, 2, ... in order."""
-    body = (
-        "First sentence here. Second sentence here. Third sentence here."
-    )
+    body = "First sentence here. Second sentence here. Third sentence here."
     mock_pipe = make_mock_pipeline()
     results = classify_article(body, mock_pipe)
     positions = [r.position for r in results]

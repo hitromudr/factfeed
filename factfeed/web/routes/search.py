@@ -105,7 +105,7 @@ async def search_articles(
         stmt = stmt.where(Article.search_vector.op("@@")(ts_query))
 
     # Source filter
-    if source and source.isdigit():
+    if source and str(source).isdigit():
         stmt = stmt.where(Article.source_id == int(source))
 
     # Date range filter
@@ -225,9 +225,13 @@ async def search_page(
 
     # HTMX partial response
     if request.headers.get("HX-Request"):
-        return templates.TemplateResponse("_results.html", context)
+        return templates.TemplateResponse(
+            request=request, name="_results.html", context=context
+        )
 
-    return templates.TemplateResponse("search.html", context)
+    return templates.TemplateResponse(
+        request=request, name="search.html", context=context
+    )
 
 
 @router.get("/search")
@@ -314,6 +318,10 @@ async def search_endpoint(
     }
 
     if request.headers.get("HX-Request"):
-        return templates.TemplateResponse("_results.html", context)
+        return templates.TemplateResponse(
+            request=request, name="_results.html", context=context
+        )
 
-    return templates.TemplateResponse("search.html", context)
+    return templates.TemplateResponse(
+        request=request, name="search.html", context=context
+    )

@@ -17,7 +17,7 @@ LABEL_MAP = {"factual statement": "fact", "opinion or commentary": "opinion"}
 
 
 def create_classifier(
-    model_name: str = "MoritzLaurer/deberta-v3-base-zeroshot-v2.0",
+    model_name: str = "MoritzLaurer/mdeberta-v3-base-zeroshot-v1.1-all-nli",
 ) -> Callable:
     """Create a zero-shot classification pipeline.
 

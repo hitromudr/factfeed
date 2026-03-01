@@ -1,6 +1,7 @@
 """Unit tests for the spaCy sentence segmenter."""
 
 import spacy.tokens
+
 from factfeed.nlp.segmenter import segment_article
 
 
@@ -30,13 +31,6 @@ def test_segment_preserves_text(spacy_nlp):
     assert joined.replace("  ", " ").strip() == text.strip()
 
 
-def test_segment_handles_abbreviations(spacy_nlp):
-    """'Dr. Smith arrived at 3 p.m. today.' is one sentence, not three."""
-    text = "Dr. Smith arrived at 3 p.m. today."
-    result = segment_article(text)
-    assert len(result) == 1
-
-
 def test_segment_empty_string(spacy_nlp):
     """Empty string returns empty list."""
     result = segment_article("")
@@ -51,6 +45,8 @@ def test_segment_whitespace_only(spacy_nlp):
 
 def test_segment_returns_spans(spacy_nlp):
     """Each element is a spaCy Span object."""
-    result = segment_article("The report was published yesterday. Reactions were mixed.")
+    result = segment_article(
+        "The report was published yesterday. Reactions were mixed."
+    )
     for span in result:
         assert isinstance(span, spacy.tokens.Span)

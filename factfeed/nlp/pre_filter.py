@@ -9,14 +9,11 @@ Pre-filter returns None for sentences that need transformer classification.
 Attribution check runs BEFORE unclear check (priority ordering).
 """
 
+import re
 from dataclasses import dataclass
 from typing import Literal, Optional
 
-import spacy
-from spacy.matcher import DependencyMatcher, PhraseMatcher
 from spacy.tokens import Span
-
-from factfeed.nlp.segmenter import get_nlp
 
 Label = Literal["fact", "opinion", "mixed", "unclear"]
 
@@ -34,51 +31,26 @@ class PreFilterResult:
 # Module-level matcher initialization (run once when module loads)
 # ---------------------------------------------------------------------------
 
-_nlp = get_nlp()
+# Attribution phrases regex
+_ATTRIBUTION_PHRASES_RE = re.compile(
+    r"(?i)\b(?:according to|told reporters|sources said|sources say|officials said|officials say|a spokesperson said|in a statement)\b"
+)
 
-# Attribution verbs for DependencyMatcher
-_ATTRIBUTION_VERBS = {
-    "say", "tell", "claim", "state", "announce", "report", "allege",
-    "argue", "warn", "explain", "note", "add", "confirm", "deny",
-    "insist", "suggest", "indicate", "assert", "contend", "maintain",
-    "remark", "declare",
-}
-
-# DependencyMatcher for attribution verbs with a subject
-_dep_matcher = DependencyMatcher(_nlp.vocab)
-_dep_pattern = [
-    {
-        "RIGHT_ID": "verb",
-        "RIGHT_ATTRS": {"POS": "VERB", "LEMMA": {"IN": list(_ATTRIBUTION_VERBS)}},
-    },
-    {
-        "LEFT_ID": "verb",
-        "REL_OP": ">",
-        "RIGHT_ID": "subject",
-        "RIGHT_ATTRS": {"DEP": "nsubj"},
-    },
-]
-_dep_matcher.add("ATTRIBUTION_VERB", [_dep_pattern])
-
-# PhraseMatcher for attribution phrases
-_phrase_matcher = PhraseMatcher(_nlp.vocab, attr="LOWER")
-_ATTRIBUTION_PHRASES = [
-    "according to",
-    "told reporters",
-    "sources said",
-    "sources say",
-    "officials said",
-    "officials say",
-    "a spokesperson said",
-    "in a statement",
-]
-_phrase_patterns = list(_nlp.tokenizer.pipe(_ATTRIBUTION_PHRASES))
-_phrase_matcher.add("ATTRIBUTION_PHRASE", _phrase_patterns)
+# Attribution verbs regex (simplified to subject + past tense verb)
+_ATTRIBUTION_VERBS_RE = re.compile(
+    r"\b(?:[Hh]e|[Ss]he|[Tt]hey|[Ww]ho|[Ss]ources?|[Oo]fficials?|[Ee]xperts?|[Pp]olice|[Aa]uthorities|[Ss]pokesperson|[Rr]epresentatives?|[Cc][Ee][Oo]|[Dd]irector|[Mm]inisters?|[Pp]resident|[Gg]overnment|[A-Z][a-z]+)\s+(?:said|claimed|told|stated|announced|reported|alleged|argued|warned|explained|noted|added|confirmed|denied|insisted|suggested|indicated|asserted|contended|maintained|remarked|declared)\b"
+)
 
 # Satire markers
 SATIRE_MARKERS = {
-    "the onion", "babylon bee", "reductress", "the daily mash",
-    "the beaverton", "world news daily report", "satire", "[satire]",
+    "the onion",
+    "babylon bee",
+    "reductress",
+    "the daily mash",
+    "the beaverton",
+    "world news daily report",
+    "satire",
+    "[satire]",
 }
 
 # Breaking news patterns
@@ -88,15 +60,12 @@ BREAKING_PATTERNS = ["breaking:", "breaking news:", "developing story:", "just i
 def is_attribution(sent_span: Span) -> bool:
     """Detect attributed speech patterns in a sentence span.
 
-    Uses both dependency matching (verb + nsubj) and phrase matching
-    to catch patterns like "The CEO said..." and "According to...".
+    Uses regex matching to catch patterns like "The CEO said..." and "According to...".
     """
-    doc = sent_span.as_doc()
-    dep_matches = _dep_matcher(doc)
-    if dep_matches:
+    text = sent_span.text
+    if _ATTRIBUTION_PHRASES_RE.search(text):
         return True
-    phrase_matches = _phrase_matcher(doc)
-    if phrase_matches:
+    if _ATTRIBUTION_VERBS_RE.search(text):
         return True
     return False
 
@@ -154,7 +123,9 @@ def _get_unclear_reason(sent_span: Span, source_name: str = "") -> str:
     return "short_sentence"  # fallback
 
 
-def pre_filter_sentence(sent_span: Span, source_name: str = "") -> Optional[PreFilterResult]:
+def pre_filter_sentence(
+    sent_span: Span, source_name: str = ""
+) -> Optional[PreFilterResult]:
     """Run pre-filter on a sentence span.
 
     Attribution check runs FIRST (priority). A 10-token sentence like

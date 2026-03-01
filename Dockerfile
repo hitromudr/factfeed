@@ -13,8 +13,8 @@ RUN mkdir -p factfeed && touch factfeed/__init__.py
 # Install dependencies (cached unless pyproject.toml/uv.lock change)
 RUN uv sync --frozen --no-dev
 
-# Download spaCy English model (pip needed internally by spacy download)
-RUN uv pip install pip && uv run python -m spacy download en_core_web_sm
+# Download spaCy multilingual model (pip needed internally by spacy download)
+RUN uv pip install pip && uv run python -m spacy download xx_sent_ud_sm
 
 # Copy application code
 COPY factfeed/ ./factfeed/

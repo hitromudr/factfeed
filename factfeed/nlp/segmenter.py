@@ -1,14 +1,14 @@
 """
 spaCy-based sentence segmentation for article body text.
 
-Loads the en_core_web_sm model once at module level and provides
+Loads the xx_sent_ud_sm model once at module level and provides
 a single entry point for splitting article bodies into sentence spans.
 """
 
 import spacy
 from spacy.tokens import Span
 
-_nlp = spacy.load("en_core_web_sm")
+_nlp = spacy.load("xx_sent_ud_sm")
 
 
 def get_nlp() -> spacy.Language:

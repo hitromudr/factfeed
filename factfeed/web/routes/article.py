@@ -70,9 +70,9 @@ async def article_detail(
         s.confidence_label = _confidence_label(s.confidence)
 
     return templates.TemplateResponse(
-        "article.html",
-        {
-            "request": request,
+        request=request,
+        name="article.html",
+        context={
             "article": article,
             "sentences": article.sentences,
             "confidence_label": _confidence_label,
@@ -120,9 +120,9 @@ async def article_content(
 
     # We only render the body part
     return templates.TemplateResponse(
-        "_article_body.html",
-        {
-            "request": request,
+        request=request,
+        name="_article_body.html",
+        context={
             "article": article,
             "sentences": article.sentences,
             "confidence_label": _confidence_label,

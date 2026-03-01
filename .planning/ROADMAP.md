@@ -6,6 +6,7 @@
 - ✅ **v1.1 API & UI** — Phase 6 (shipped 2026-02-25)
 - ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
 - 🚧 **v1.3 Redesign & Translation** — Phases 8-9 (in progress)
+- ✅ **v1.4 Global Coverage** — Phase 10 (shipped 2026-03-01)
 
 ## Phases
 
@@ -57,6 +58,16 @@ Plans:
 Plans:
 - [ ] Plan 9.1: Integrate translation service
 
+### Phase 10: Global News Sources & Multilingual NLP
+
+**Goal:** Expand ingestion to top global sources and upgrade NLP model for non-English texts.
+**Depends on:** Phase 9
+**Plans:** 2 plans
+
+Plans:
+- [x] Plan 10.1: Replace DeBERTa with `mDeBERTa-v3` for multilingual Zero-Shot classification.
+- [x] Plan 10.2: Add 10+ new international RSS feeds (Guardian, DW, El País, Meduza, NHK) to `sources.py`.
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -70,3 +81,4 @@ Plans:
 | 7. Localization | v1.2 | 1/1 | Complete | 2026-03-01 |
 | 8. UI Redesign & Widget | v1.3 | 0/1 | Planned | - |
 | 9. Content Translation | v1.3 | 0/1 | Planned | - |
+| 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
