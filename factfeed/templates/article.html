@@ -8,12 +8,12 @@ _('FactFeed') }}{% endblock %} {% block content %}
             <div class="meta-main">
                 {% if article.source %}
                 <span class="source-badge">{{ article.source.name }}</span>
-                {% endif %} {% if article.author %}
-                <span class="author">{{ _('by') }} {{ article.author }}</span>
                 {% endif %} {% if article.published_at %}
                 <span class="date"
                     >{{ article.published_at.strftime('%d %b %Y') }}</span
                 >
+                {% endif %} {% if article.author %}
+                <span class="author">{{ _('by') }} {{ article.author }}</span>
                 {% endif %}
             </div>
 
@@ -28,19 +28,18 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 </div>
                 <div class="legend-item">
                     <span class="legend-swatch mixed"></span>
-                    <span>{{ _('Mixed/Unclear') }}</span>
+                    <span>{{ _('Mixed') }}</span>
                 </div>
             </div>
         </div>
 
         {% if similar_articles %}
         <div class="providers-section">
-            <p class="providers-label">{{ _('Read from other sources') }}:</p>
+            <div class="providers-label">{{ _('Also covered by') }}:</div>
             <div class="providers-list">
                 <span class="provider-chip active"
                     >{{ article.source.name }}</span
                 >
-
                 {% for other in similar_articles %}
                 <a
                     href="/article/{{ other.id }}{{ '?lang=' ~ locale if locale else '' }}"
@@ -87,7 +86,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
             rel="noopener noreferrer"
             class="btn-primary"
         >
-            {{ _('Read original') }}
+            <span>{{ _('Read original') }}</span>
             <svg
                 width="16"
                 height="16"
@@ -97,7 +96,6 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                style="margin-left: 6px"
             >
                 <path
                     d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
@@ -111,16 +109,23 @@ _('FactFeed') }}{% endblock %} {% block content %}
 </article>
 
 <script>
+    // Interaction logic for sentences
     document.addEventListener("click", function (e) {
         if (e.target.classList.contains("sentence")) {
-            // Remove active class from all sentences
+            // Toggle active state
+            const wasActive = e.target.classList.contains("active");
+
+            // Remove active from all
             document
                 .querySelectorAll(".sentence")
                 .forEach((el) => el.classList.remove("active"));
-            // Add active class to clicked sentence
-            e.target.classList.add("active");
+
+            // If it wasn't active before, make it active now
+            if (!wasActive) {
+                e.target.classList.add("active");
+            }
         } else {
-            // Clicked outside, remove active from all
+            // Click outside clears selection
             document
                 .querySelectorAll(".sentence")
                 .forEach((el) => el.classList.remove("active"));

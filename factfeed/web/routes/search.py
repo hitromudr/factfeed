@@ -117,9 +117,9 @@ async def search_articles(
     if classification == "fact":
         stmt = stmt.where(fact_ratio >= 0.7)
     elif classification == "opinion":
-        stmt = stmt.where(fact_ratio <= 0.4)
+        stmt = stmt.where(fact_ratio <= 0.3)
     elif classification == "mixed":
-        stmt = stmt.where(fact_ratio > 0.4, fact_ratio < 0.7)
+        stmt = stmt.where(fact_ratio > 0.3, fact_ratio < 0.7)
 
     # Sort order
     if sort == "recent":

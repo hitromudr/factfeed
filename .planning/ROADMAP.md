@@ -47,7 +47,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] Plan 8.1: UI Refinement and Language Switcher
+- [x] Plan 8.1: UI Refinement and Language Switcher
 
 ### Phase 9: Content Auto-Translation
 
@@ -79,6 +79,6 @@ Plans:
 | 5. Polish and Hardening | v1.0 | 2/2 | Complete | 2026-02-25 |
 | 6. API & UI Polish | v1.1 | 2/2 | Complete | 2026-02-25 |
 | 7. Localization | v1.2 | 1/1 | Complete | 2026-03-01 |
-| 8. UI Redesign & Widget | v1.3 | 0/1 | Planned | - |
+| 8. UI Redesign & Widget | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 9. Content Translation | v1.3 | 0/1 | Planned | - |
 | 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
