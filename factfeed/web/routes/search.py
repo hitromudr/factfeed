@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Sentence, Source
-from factfeed.nlp.translator import translate_text
+from factfeed.nlp.translator import get_or_create_translation
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 from factfeed.web.limiter import limiter
@@ -160,22 +160,14 @@ async def search_page(
 
     # Translate titles AND snippets if needed
     if locale != "en":
-
-        async def translate_item(article):
-            t_title = await translate_text(article.title, locale)
-            t_body = await translate_text(
-                article.body[:300] if article.body else "", locale
-            )
-            return t_title, t_body
-
-        tasks = [translate_item(a) for a in articles]
+        # Process translations in parallel using DB cache where available
+        tasks = [get_or_create_translation(db, a, locale) for a in articles]
         if tasks:
-            results = await asyncio.gather(*tasks)
-            for article, (title, body) in zip(articles, results):
-                article.title = title
-                # We store the translated snippet temporarily on the object
-                # This is safe as long as we don't commit the session
-                article.translated_snippet = body
+            await asyncio.gather(*tasks)
+            for article in articles:
+                # Use the translated body (now on the object) to create snippet
+                snippet_text = article.body[:300] if article.body else ""
+                article.translated_snippet = snippet_text
 
     # Group articles by title
     groups = {}
@@ -260,20 +252,12 @@ async def search_endpoint(
     await _attach_fact_scores(db, articles)
 
     if locale != "en":
-
-        async def translate_item(article):
-            t_title = await translate_text(article.title, locale)
-            t_body = await translate_text(
-                article.body[:300] if article.body else "", locale
-            )
-            return t_title, t_body
-
-        tasks = [translate_item(a) for a in articles]
+        tasks = [get_or_create_translation(db, a, locale) for a in articles]
         if tasks:
-            results = await asyncio.gather(*tasks)
-            for article, (title, body) in zip(articles, results):
-                article.title = title
-                article.translated_snippet = body
+            await asyncio.gather(*tasks)
+            for article in articles:
+                snippet_text = article.body[:300] if article.body else ""
+                article.translated_snippet = snippet_text
 
     # Group articles by title
     groups = {}

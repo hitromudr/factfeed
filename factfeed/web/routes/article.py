@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article
-from factfeed.nlp.translator import translate_text
+from factfeed.nlp.translator import get_or_create_translation, translate_text
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 
@@ -61,9 +61,9 @@ async def article_detail(
     similar_result = await db.execute(similar_stmt)
     similar_articles = similar_result.scalars().all()
 
-    # Translate title immediately (fast)
+    # Translate title immediately (using DB cache if available)
     if locale != "en":
-        article.title = await translate_text(article.title, locale)
+        await get_or_create_translation(db, article, locale)
 
     # Add confidence labels to all sentences
     for s in article.sentences:
@@ -104,9 +104,7 @@ async def article_content(
         return ""
 
     if locale != "en":
-        if not article.sentences and article.body:
-            # Translate full body
-            article.body = await translate_text(article.body, locale)
+        await get_or_create_translation(db, article, locale)
 
         tasks = [translate_text(s.text, locale) for s in article.sentences]
         if tasks:

@@ -1,52 +1,136 @@
+"""
+Translation service with database persistence.
+
+Handles translating articles (title, body) and persisting results to
+the 'translations' table to avoid repeated external API calls.
+"""
+
 import asyncio
-from typing import List
+import logging
 
 from deep_translator import GoogleTranslator
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from factfeed.db.models import Article, Translation
+
+log = logging.getLogger(__name__)
 
 
 def get_translator_instance(target: str = "ru") -> GoogleTranslator:
-    """Get a fresh translator instance for the target language to avoid thread-safety issues."""
+    """Get a fresh translator instance for the target language."""
     return GoogleTranslator(source="auto", target=target)
 
 
-# Simple in-memory cache: {(text, target): translated_text}
-_translation_cache = {}
-
-
 async def translate_text(text: str, target: str) -> str:
-    """Translate a single text string asynchronously."""
+    """Translate a single text string asynchronously.
+
+    This function does NOT check the database cache; it is a direct wrapper
+    around the translation API. Use get_or_create_translation for articles.
+    """
     if not text or target == "en":
         return text
 
-    cache_key = (text, target)
-    if cache_key in _translation_cache:
-        return _translation_cache[cache_key]
+    # Quick check for empty or whitespace-only strings
+    if not text.strip():
+        return text
 
     translator = get_translator_instance(target)
     try:
         loop = asyncio.get_running_loop()
         # deep-translator is synchronous, run in thread pool
         translated = await loop.run_in_executor(None, translator.translate, text)
-        if translated:
-            _translation_cache[cache_key] = translated
-        return translated
+        return translated or text
     except Exception:
-        # Fallback to original text on failure
+        log.warning("translation_failed: text='%s' target='%s'", text[:50], target)
         return text
 
 
-async def translate_batch(texts: List[str], target: str) -> List[str]:
-    """Translate a list of strings concurrently."""
-    if not texts or target == "en":
-        return texts
+async def get_or_create_translation(
+    db: AsyncSession, article: Article, target_lang: str
+) -> Article:
+    """Get translated title/body from DB or fetch from API and save.
 
-    translator = get_translator_instance(target)
-    try:
-        loop = asyncio.get_running_loop()
-        # GoogleTranslator.translate_batch is more efficient if supported,
-        # but let's stick to concurrent single calls or batch if library supports it well.
-        # deep-translator supports translate_batch.
-        translated = await loop.run_in_executor(None, translator.translate_batch, texts)
-        return translated
-    except Exception:
-        return texts
+    Updates the passed article object's title and body in-place (in memory)
+    with the translated values.
+
+    Note: This handles the Article title and body fields. It does NOT automatically
+    handle the 'sentences' relationship list. Callers needing sentence-level
+    translation must handle that separately (potentially using translate_text).
+    """
+    if target_lang == "en":
+        return article
+
+    # Ensure session-level locking to allow concurrent calls (e.g. asyncio.gather)
+    if not hasattr(db, "_translation_lock"):
+        db._translation_lock = asyncio.Lock()
+
+    # 1. Check DB for existing translation
+    async with db._translation_lock:
+        stmt = select(Translation).where(
+            Translation.article_id == article.id,
+            Translation.language == target_lang,
+        )
+        result = await db.execute(stmt)
+        translation = result.scalar_one_or_none()
+
+    if translation:
+        # Found cached translation
+        if translation.title:
+            article.title = translation.title
+        if translation.body:
+            article.body = translation.body
+        return article
+
+    # 2. Fetch from API (Cache Miss)
+    tasks = []
+
+    # Task 0: Title
+    if article.title:
+        tasks.append(translate_text(article.title, target_lang))
+    else:
+        tasks.append(asyncio.sleep(0, result=""))
+
+    # Task 1: Body
+    if article.body:
+        tasks.append(translate_text(article.body, target_lang))
+    else:
+        tasks.append(asyncio.sleep(0, result=""))
+
+    results = await asyncio.gather(*tasks)
+    translated_title = results[0]
+    translated_body = results[1]
+
+    # 3. Save to DB
+    # We use upsert to be safe against race conditions
+    if translated_title or translated_body:
+        upsert_stmt = (
+            pg_insert(Translation)
+            .values(
+                article_id=article.id,
+                language=target_lang,
+                title=translated_title,
+                body=translated_body,
+            )
+            .on_conflict_do_update(
+                index_elements=["article_id", "language"],
+                set_={"title": translated_title, "body": translated_body},
+            )
+        )
+        try:
+            async with db._translation_lock:
+                await db.execute(upsert_stmt)
+                await db.commit()
+        except Exception as e:
+            log.error("translation_save_failed: %s", str(e))
+            async with db._translation_lock:
+                await db.rollback()
+
+    # 4. Update in-memory object
+    if translated_title:
+        article.title = translated_title
+    if translated_body:
+        article.body = translated_body
+
+    return article

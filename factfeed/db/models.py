@@ -1,4 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, Computed, Index, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Computed,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -51,12 +63,19 @@ class Article(Base):
         cascade="all, delete-orphan",
         order_by="Sentence.position",
     )
+    translations = relationship(
+        "Translation",
+        back_populates="article",
+        cascade="all, delete-orphan",
+    )
 
 
 class Sentence(Base):
     __tablename__ = "sentences"
     __table_args__ = (
-        UniqueConstraint("article_id", "position", name="uq_sentences_article_position"),
+        UniqueConstraint(
+            "article_id", "position", name="uq_sentences_article_position"
+        ),
     )
 
     id = Column(Integer, primary_key=True)
@@ -69,3 +88,22 @@ class Sentence(Base):
     confidence = Column(Float, nullable=True)
 
     article = relationship("Article", back_populates="sentences")
+
+
+class Translation(Base):
+    __tablename__ = "translations"
+    __table_args__ = (
+        UniqueConstraint(
+            "article_id", "language", name="uq_translations_article_language"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True)
+    article_id = Column(
+        Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False
+    )
+    language = Column(String(5), nullable=False)
+    title = Column(Text, nullable=True)
+    body = Column(Text, nullable=True)
+
+    article = relationship("Article", back_populates="translations")

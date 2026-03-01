@@ -5,7 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-02-25)
 - ✅ **v1.1 API & UI** — Phase 6 (shipped 2026-02-25)
 - ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
-- 🚧 **v1.3 Redesign & Translation** — Phases 8-9 (in progress)
+- ✅ **v1.3 Redesign & Translation** — Phases 8-9 (shipped 2026-03-01)
 - ✅ **v1.4 Global Coverage** — Phase 10 (shipped 2026-03-01)
 
 ## Phases
@@ -56,7 +56,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] Plan 9.1: Integrate translation service
+- [x] Plan 9.1: Integrate translation service
 
 ### Phase 10: Global News Sources & Multilingual NLP
 
@@ -80,5 +80,5 @@ Plans:
 | 6. API & UI Polish | v1.1 | 2/2 | Complete | 2026-02-25 |
 | 7. Localization | v1.2 | 1/1 | Complete | 2026-03-01 |
 | 8. UI Redesign & Widget | v1.3 | 1/1 | Complete | 2026-03-01 |
-| 9. Content Translation | v1.3 | 0/1 | Planned | - |
+| 9. Content Translation | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
