@@ -1,32 +1,68 @@
-{% if articles %}
-{% for article in articles %}
+{% if articles %} {% for article in articles %}
 <div class="article-card">
     <h2><a href="/article/{{ article.id }}">{{ article.title }}</a></h2>
+
     <div class="article-meta">
         {% if article.source %}
-        <span class="source-name">{{ article.source.name }}</span>
-        {% endif %}
-        {% if article.published_at %}
-        <span class="date">{{ article.published_at.strftime('%b %d, %Y') }}</span>
+        <span class="source-badge">{{ article.source.name }}</span>
+        {% endif %} {% if article.published_at %}
+        <span class="date"
+            >{{ article.published_at.strftime('%b %d, %Y') }}</span
+        >
         {% endif %}
     </div>
-    {% if article.total_count %}
-    <div class="fact-score">
-        <span class="fact-badge {% if article.fact_pct >= 70 %}fact-high{% elif article.fact_pct >= 40 %}fact-mid{% else %}fact-low{% endif %}">{{ article.fact_pct }}% facts</span>
-        <span class="sentence-breakdown">{{ article.fact_count }} fact{{ 's' if article.fact_count != 1 else '' }}, {{ article.opinion_count }} opinion{{ 's' if article.opinion_count != 1 else '' }}{% if article.mixed_count %}, {{ article.mixed_count }} mixed{% endif %}</span>
+
+    {% if article.total_count and article.total_count > 0 %} {% set fact_pct =
+    (article.fact_count / article.total_count * 100) %} {% set opinion_pct =
+    (article.opinion_count / article.total_count * 100) %} {% set mixed_pct =
+    (article.mixed_count / article.total_count * 100) %}
+
+    <div
+        class="fact-meter"
+        title="{{ article.fact_count }} {{ _('facts') }}, {{ article.opinion_count }} {{ _('opinions') }}, {{ article.mixed_count }} {{ _('mixed') }}"
+    >
+        <div class="meter-track">
+            <div class="meter-segment fact" style="flex: {{ fact_pct }}"></div>
+            <div
+                class="meter-segment mixed"
+                style="flex: {{ mixed_pct }}"
+            ></div>
+            <div
+                class="meter-segment opinion"
+                style="flex: {{ opinion_pct }}"
+            ></div>
+        </div>
+        <div
+            class="meter-label {% if fact_pct >= 70 %}high-fact{% elif fact_pct < 40 %}low-fact{% endif %}"
+        >
+            {{ fact_pct|int }}% {{ _('Facts') }}
+        </div>
     </div>
-    {% endif %}
-    {% if article.body %}
-    <p class="excerpt">{{ article.body[:200] }}{% if article.body|length > 200 %}...{% endif %}</p>
+    {% else %}
+    <div class="fact-meter">
+        <div class="meter-track" style="background: #e2e8f0"></div>
+        <div class="meter-label" style="color: #94a3b8; font-weight: 400">
+            {{ _('Processing') }}
+        </div>
+    </div>
+    {% endif %} {% if article.body %}
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5">
+        {{ article.body[:180] }}{% if article.body|length > 180 %}...{% endif %}
+    </p>
     {% endif %}
 </div>
-{% endfor %}
-{% else %}
-<div class="no-results">
+{% endfor %} {% else %}
+<div style="text-align: center; padding: 4rem 0; color: var(--text-muted)">
     {% if q %}
-    <p>No articles found for "{{ q }}".</p>
+    <p>{{ _('No articles found for') }} "<strong>{{ q }}</strong>".</p>
+    <p style="font-size: 0.9rem; margin-top: 0.5rem">
+        {{ _('Try adjusting your filters or search terms.') }}
+    </p>
     {% else %}
-    <p>No articles available yet. Articles will appear as they are ingested.</p>
+    <p>{{ _('No articles available yet.') }}</p>
+    <p style="font-size: 0.9rem; margin-top: 0.5rem">
+        {{ _('The ingestion pipeline may still be running.') }}
+    </p>
     {% endif %}
 </div>
 {% endif %}

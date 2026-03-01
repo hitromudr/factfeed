@@ -3,6 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-02-25)
+- ✅ **v1.1 API & UI** — Phase 6 (shipped 2026-02-25)
+- ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
 
 ## Phases
 
@@ -17,6 +19,25 @@
 
 </details>
 
+### Phase 6: API & UI Polish
+
+**Goal:** Create a public API and improve frontend UX
+**Depends on:** Phase 5
+**Plans:** 2 plans
+
+Plans:
+- [x] Plan 6.1: REST API Implementation
+- [x] Plan 6.2: Frontend UX Overhaul
+
+### Phase 7: Localization
+
+**Goal:** Support multiple languages (starting with Russian)
+**Depends on:** Phase 6
+**Plans:** 1 plan
+
+Plans:
+- [x] Plan 7.1: Implement i18n with Babel and Russian translation
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -26,3 +47,5 @@
 | 3. NLP Classification Pipeline | v1.0 | 4/4 | Complete | 2026-02-23 |
 | 4. Web Interface | v1.0 | 4/4 | Complete | 2026-02-24 |
 | 5. Polish and Hardening | v1.0 | 2/2 | Complete | 2026-02-25 |
+| 6. API & UI Polish | v1.1 | 2/2 | Complete | 2026-02-25 |
+| 7. Localization | v1.2 | 1/1 | Complete | 2026-03-01 |

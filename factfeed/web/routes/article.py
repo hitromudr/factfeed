@@ -1,5 +1,7 @@
 """Article detail route with sentence highlighting and collapsible opinions."""
 
+from typing import Callable
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -9,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article
 from factfeed.web.deps import get_db
+from factfeed.web.i18n import get_locale, get_translator
 
 router = APIRouter()
 
@@ -31,6 +34,8 @@ async def article_detail(
     request: Request,
     article_id: int,
     db: AsyncSession = Depends(get_db),
+    trans: Callable[[str], str] = Depends(get_translator),
+    locale: str = Depends(get_locale),
 ):
     """Render article detail with inline sentence highlighting."""
     stmt = (
@@ -65,5 +70,7 @@ async def article_detail(
             "opinion_sentences": opinion_sentences,
             "opinion_count": len(opinion_sentences),
             "confidence_label": _confidence_label,
+            "_": trans,
+            "locale": locale,
         },
     )

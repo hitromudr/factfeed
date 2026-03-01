@@ -1,59 +1,95 @@
-{% extends "base.html" %}
-
-{% block title %}{{ article.title }} - FactFeed{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ article.title }} - {{
+_('FactFeed') }}{% endblock %} {% block content %}
 <article class="article-detail">
     <header class="article-header">
         <h1>{{ article.title }}</h1>
         <div class="article-meta">
             {% if article.source %}
-            <span class="source-name">{{ article.source.name }}</span>
-            {% endif %}
-            {% if article.author %}
-            <span class="author">by {{ article.author }}</span>
-            {% endif %}
-            {% if article.published_at %}
-            <span class="date">{{ article.published_at.strftime('%B %d, %Y') }}</span>
+            <span class="source-badge">{{ article.source.name }}</span>
+            {% endif %} {% if article.author %}
+            <span class="author">{{ _('by') }} {{ article.author }}</span>
+            {% endif %} {% if article.published_at %}
+            <span class="date"
+                >{{ article.published_at.strftime('%B %d, %Y') }}</span
+            >
             {% endif %}
         </div>
+
         <div class="legend">
-            <span class="legend-item"><span class="legend-swatch fact"></span> Fact</span>
-            <span class="legend-item"><span class="legend-swatch opinion"></span> Opinion</span>
-            <span class="legend-item"><span class="legend-swatch mixed"></span> Mixed/Unclear</span>
+            <div class="legend-item">
+                <span class="legend-swatch fact"></span>
+                <span>{{ _('Fact') }}</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch opinion"></span>
+                <span>{{ _('Opinion') }}</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-swatch mixed"></span>
+                <span>{{ _('Mixed/Unclear') }}</span>
+            </div>
         </div>
     </header>
 
     <div class="article-body">
-        {% if non_opinion_sentences or opinion_sentences %}
-            {% for sentence in non_opinion_sentences %}
-                {% set conf_label = "High" if sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
-                <span class="sentence {{ sentence.label or 'unclear' }}" title="{{ conf_label }} confidence">{{ sentence.text }} </span>
-            {% endfor %}
-        {% else %}
-            <div class="no-classification">
-                <p>{{ article.body or "No content available." }}</p>
-                <p class="note">Classification pending.</p>
-            </div>
+        {% if non_opinion_sentences or opinion_sentences %} {% for sentence in
+        non_opinion_sentences %} {% set conf_label = "High" if
+        sentence.confidence is not none and sentence.confidence >= 0.7 else
+        ("Medium" if sentence.confidence is not none and sentence.confidence >=
+        0.4 else "Low") %}
+        <span
+            class="sentence {{ sentence.label or 'unclear' }}"
+            title="{{ _(conf_label) }} {{ _('confidence') }}"
+            >{{ sentence.text }}
+        </span>
+        {% endfor %} {% else %}
+        <div class="no-classification">
+            <p>{{ article.body or _('No content available.') }}</p>
+            <p
+                class="note"
+                style="
+                    margin-top: 1rem;
+                    color: var(--text-muted);
+                    font-style: italic;
+                "
+            >
+                {{ _('Classification pending.') }}
+            </p>
+        </div>
         {% endif %}
     </div>
 
     {% if opinion_sentences %}
     <details class="opinion-section">
-        <summary class="opinion-toggle">Show opinion content ({{ opinion_count }} sentence{{ 's' if opinion_count != 1 else '' }})</summary>
+        <summary class="opinion-toggle">
+            {{ _('Show opinion content') }} ({{ opinion_count }} {{
+            _('sentences') }})
+        </summary>
         <div class="opinion-content">
-            {% for sentence in opinion_sentences %}
-                {% set conf_label = "High" if sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
-                <span class="sentence opinion" title="{{ conf_label }} confidence">{{ sentence.text }} </span>
+            {% for sentence in opinion_sentences %} {% set conf_label = "High"
+            if sentence.confidence is not none and sentence.confidence >= 0.7
+            else ("Medium" if sentence.confidence is not none and
+            sentence.confidence >= 0.4 else "Low") %}
+            <span
+                class="sentence opinion"
+                title="{{ _(conf_label) }} {{ _('confidence') }}"
+                >{{ sentence.text }}
+            </span>
             {% endfor %}
         </div>
     </details>
     {% endif %}
 
     <footer class="article-footer">
-        <a href="/" class="back-link">&larr; Back to search</a>
+        <a href="/" class="back-link">&larr; {{ _('Back to search') }}</a>
         {% if article.url %}
-        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="original-link">Read original</a>
+        <a
+            href="{{ article.url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="original-link"
+            >{{ _('Read original') }}</a
+        >
         {% endif %}
     </footer>
 </article>

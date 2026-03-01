@@ -59,13 +59,37 @@ async def seed_data(db_session: AsyncSession):
 
     # Sentences for article 1 (mostly facts)
     sentences_art1 = [
-        Sentence(article_id=art1.id, position=0, text="Scientists have discovered a new species of fish in the deep ocean.", label="fact", confidence=0.92),
-        Sentence(article_id=art1.id, position=1, text="The creature was found at a depth of 3000 meters.", label="fact", confidence=0.88),
+        Sentence(
+            article_id=art1.id,
+            position=0,
+            text="Scientists have discovered a new species of fish in the deep ocean.",
+            label="fact",
+            confidence=0.92,
+        ),
+        Sentence(
+            article_id=art1.id,
+            position=1,
+            text="The creature was found at a depth of 3000 meters.",
+            label="fact",
+            confidence=0.88,
+        ),
     ]
     # Sentences for article 2 (mixed with opinions)
     sentences_art2 = [
-        Sentence(article_id=art2.id, position=0, text="The economy showed mixed signals this quarter.", label="fact", confidence=0.75),
-        Sentence(article_id=art2.id, position=1, text="Many analysts believe the outlook is poor.", label="opinion", confidence=0.82),
+        Sentence(
+            article_id=art2.id,
+            position=0,
+            text="The economy showed mixed signals this quarter.",
+            label="fact",
+            confidence=0.75,
+        ),
+        Sentence(
+            article_id=art2.id,
+            position=1,
+            text="Many analysts believe the outlook is poor.",
+            label="opinion",
+            confidence=0.82,
+        ),
     ]
     db_session.add_all(sentences_art1 + sentences_art2)
     await db_session.commit()
@@ -98,6 +122,7 @@ async def client(db_session: AsyncSession, seed_data):
 
 
 # --- Search endpoint tests ---
+
 
 @pytest.mark.asyncio
 async def test_search_page_renders(client):
@@ -176,6 +201,7 @@ async def test_search_htmx_partial(client, seed_data):
 
 # --- Article detail tests ---
 
+
 @pytest.mark.asyncio
 async def test_article_detail_renders(client, seed_data):
     """GET /article/{id} returns article detail with title."""
@@ -231,6 +257,7 @@ async def test_article_no_sentences(client, seed_data):
 
 # --- No-auth verification ---
 
+
 @pytest.mark.asyncio
 async def test_no_auth_cookies(client, seed_data):
     """No authentication middleware or session cookies in any response."""
@@ -249,3 +276,16 @@ async def test_health_endpoint(client):
     resp = await client.get("/health")
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
+
+
+# --- Localization tests ---
+
+
+@pytest.mark.asyncio
+async def test_localization_ru(client):
+    """GET / with Accept-Language: ru returns Russian UI."""
+    resp = await client.get("/", headers={"Accept-Language": "ru"})
+    assert resp.status_code == 200
+    # Check for Russian strings
+    assert "Поиск" in resp.text
+    assert "Документация API" in resp.text

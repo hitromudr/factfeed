@@ -6,20 +6,22 @@ from pathlib import Path
 import httpx
 import structlog
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from factfeed.config import settings
-from factfeed.web.limiter import limiter
-from factfeed.web.routes import search as search_routes
-from factfeed.web.routes import article as article_routes
 from factfeed.db.session import AsyncSessionLocal
 from factfeed.ingestion.logging import configure_logging
 from factfeed.ingestion.persister import seed_sources
 from factfeed.ingestion.runner import run_ingestion_cycle
 from factfeed.ingestion.scheduler import create_scheduler
 from factfeed.ingestion.sources import SOURCES
+from factfeed.web.api.v1.endpoints import router as api_v1_router
+from factfeed.web.limiter import limiter
+from factfeed.web.routes import article as article_routes
+from factfeed.web.routes import search as search_routes
 
 log = structlog.get_logger()
 
@@ -51,7 +53,6 @@ async def lifespan(app: FastAPI):
         timeout=httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=5.0),
         follow_redirects=True,
     ) as http_client:
-
         # Create and start scheduler
         async def ingestion_job():
             await run_ingestion_cycle(AsyncSessionLocal, http_client)
@@ -68,7 +69,10 @@ async def lifespan(app: FastAPI):
                         batch_size=settings.nlp_batch_size,
                     )
                     if classified > 0:
-                        log.info("nlp_classification_complete", articles_classified=classified)
+                        log.info(
+                            "nlp_classification_complete",
+                            articles_classified=classified,
+                        )
                 except Exception:
                     log.error("nlp_classification_failed", exc_info=True)
 
@@ -82,6 +86,15 @@ app = FastAPI(title="FactFeed", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# CORS (allow all origins for public API access)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Static files
 _static_dir = Path(__file__).resolve().parent.parent / "static"
 app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
@@ -89,6 +102,7 @@ app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 # Route modules
 app.include_router(search_routes.router)
 app.include_router(article_routes.router)
+app.include_router(api_v1_router, prefix="/api/v1", tags=["api"])
 
 
 @app.get("/health")

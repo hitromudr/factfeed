@@ -1,0 +1,162 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-03-01 10:34+0300\n"
+"PO-Revision-Date: 2026-03-01 10:34+0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: factfeed/templates/_results.html:22
+msgid "facts"
+msgstr "фактов"
+
+#: factfeed/templates/_results.html:22
+msgid "opinions"
+msgstr "мнений"
+
+#: factfeed/templates/_results.html:22
+msgid "mixed"
+msgstr "смешанных"
+
+#: factfeed/templates/_results.html:38
+msgid "Facts"
+msgstr "Факты"
+
+#: factfeed/templates/_results.html:45
+msgid "Processing"
+msgstr "Обработка"
+
+#: factfeed/templates/_results.html:57
+msgid "No articles found for"
+msgstr "Статьи не найдены по запросу"
+
+#: factfeed/templates/_results.html:59
+msgid "Try adjusting your filters or search terms."
+msgstr "Попробуйте изменить фильтры или условия поиска."
+
+#: factfeed/templates/_results.html:62
+msgid "No articles available yet."
+msgstr "Статей пока нет."
+
+#: factfeed/templates/_results.html:64
+msgid "The ingestion pipeline may still be running."
+msgstr "Процесс сбора данных, возможно, еще выполняется."
+
+#: factfeed/templates/article.html:2 factfeed/templates/base.html:6
+#: factfeed/templates/base.html:18 factfeed/templates/base.html:29
+msgid "FactFeed"
+msgstr "FactFeed"
+
+#: factfeed/templates/article.html:10
+msgid "by"
+msgstr "автор:"
+
+#: factfeed/templates/article.html:21
+msgid "Fact"
+msgstr "Факт"
+
+#: factfeed/templates/article.html:25
+msgid "Opinion"
+msgstr "Мнение"
+
+#: factfeed/templates/article.html:29
+msgid "Mixed/Unclear"
+msgstr "Смешанное/Неясно"
+
+#: factfeed/templates/article.html:42 factfeed/templates/article.html:75
+msgid "confidence"
+msgstr "уверенность"
+
+#: factfeed/templates/article.html:47
+msgid "No content available."
+msgstr "Контент недоступен."
+
+#: factfeed/templates/article.html:56
+msgid "Classification pending."
+msgstr "Ожидается классификация."
+
+#: factfeed/templates/article.html:65
+msgid "Show opinion content"
+msgstr "Показать мнения"
+
+#: factfeed/templates/article.html:66
+msgid "sentences"
+msgstr "предложений"
+
+#: factfeed/templates/article.html:84
+msgid "Back to search"
+msgstr "Назад к поиску"
+
+#: factfeed/templates/article.html:91
+msgid "Read original"
+msgstr "Читать оригинал"
+
+#: factfeed/templates/base.html:20
+msgid "Search"
+msgstr "Поиск"
+
+#: factfeed/templates/base.html:21
+msgid "API Docs"
+msgstr "Документация API"
+
+#: factfeed/templates/base.html:29
+msgid ""
+"Distinguishing\n"
+"                facts from opinions."
+msgstr "Отделяем факты от мнений."
+
+#: factfeed/templates/base.html:32
+msgid "API Documentation"
+msgstr "Документация API"
+
+msgid "Search for topics, people, or events..."
+msgstr "Поиск тем, людей или событий..."
+
+msgid "Filter by source"
+msgstr "Фильтр по источнику"
+
+msgid "All Sources"
+msgstr "Все источники"
+
+msgid "Filter by date"
+msgstr "Фильтр по дате"
+
+msgid "Any time"
+msgstr "Любое время"
+
+msgid "Last 24 hours"
+msgstr "За 24 часа"
+
+msgid "Last 7 days"
+msgstr "За 7 дней"
+
+msgid "Last 30 days"
+msgstr "За 30 дней"
+
+msgid "Fact density"
+msgstr "Плотность фактов"
+
+msgid "Most recent"
+msgstr "Самые новые"
+
+msgid "High"
+msgstr "Высокая"
+
+msgid "Medium"
+msgstr "Средняя"
+
+msgid "Low"
+msgstr "Низкая"

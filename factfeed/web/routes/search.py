@@ -1,7 +1,7 @@
 """Search page route with full-text search, source/date filters, and sort."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.templating import Jinja2Templates
@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Sentence, Source
 from factfeed.web.deps import get_db
+from factfeed.web.i18n import get_locale, get_translator
 from factfeed.web.limiter import limiter
 
 router = APIRouter()
@@ -23,7 +24,11 @@ def _date_cutoff(from_filter: Optional[str]) -> Optional[datetime]:
     if not from_filter:
         return None
     now = datetime.now(timezone.utc)
-    mapping = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30)}
+    mapping = {
+        "24h": timedelta(hours=24),
+        "7d": timedelta(days=7),
+        "30d": timedelta(days=30),
+    }
     delta = mapping.get(from_filter)
     if delta is None:
         return None
@@ -55,7 +60,11 @@ async def _attach_fact_scores(db: AsyncSession, articles: list) -> list:
         article.opinion_count = c.get("opinion", 0)
         article.mixed_count = c.get("mixed", 0)
         article.total_count = sum(c.values())
-        article.fact_pct = round(100 * article.fact_count / article.total_count) if article.total_count else None
+        article.fact_pct = (
+            round(100 * article.fact_count / article.total_count)
+            if article.total_count
+            else None
+        )
     return articles
 
 
@@ -121,9 +130,13 @@ async def search_page(
     from_filter: Optional[str] = Query(None, alias="from"),
     sort: str = "facts",
     db: AsyncSession = Depends(get_db),
+    trans: Callable[[str], str] = Depends(get_translator),
+    locale: str = Depends(get_locale),
 ):
     """Render the search page with results."""
-    articles = await search_articles(db, q=q, source=source, from_filter=from_filter, sort=sort)
+    articles = await search_articles(
+        db, q=q, source=source, from_filter=from_filter, sort=sort
+    )
     await _attach_fact_scores(db, articles)
 
     # Load available sources for filter dropdown
@@ -138,6 +151,8 @@ async def search_page(
         "source": source,
         "from_filter": from_filter,
         "sort": sort,
+        "_": trans,
+        "locale": locale,
     }
 
     # HTMX partial response
@@ -156,9 +171,13 @@ async def search_endpoint(
     from_filter: Optional[str] = Query(None, alias="from"),
     sort: str = "facts",
     db: AsyncSession = Depends(get_db),
+    trans: Callable[[str], str] = Depends(get_translator),
+    locale: str = Depends(get_locale),
 ):
     """HTMX search endpoint — returns partial or full page."""
-    articles = await search_articles(db, q=q, source=source, from_filter=from_filter, sort=sort)
+    articles = await search_articles(
+        db, q=q, source=source, from_filter=from_filter, sort=sort
+    )
     await _attach_fact_scores(db, articles)
 
     sources_result = await db.execute(select(Source).order_by(Source.name))
@@ -172,6 +191,8 @@ async def search_endpoint(
         "source": source,
         "from_filter": from_filter,
         "sort": sort,
+        "_": trans,
+        "locale": locale,
     }
 
     if request.headers.get("HX-Request"):
