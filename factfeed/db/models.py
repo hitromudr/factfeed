@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, Computed, Index
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean, ForeignKey, Computed, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, relationship
 
@@ -55,6 +55,9 @@ class Article(Base):
 
 class Sentence(Base):
     __tablename__ = "sentences"
+    __table_args__ = (
+        UniqueConstraint("article_id", "position", name="uq_sentences_article_position"),
+    )
 
     id = Column(Integer, primary_key=True)
     article_id = Column(

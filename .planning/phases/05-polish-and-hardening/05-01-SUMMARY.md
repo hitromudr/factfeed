@@ -136,3 +136,12 @@ None - no external service configuration required.
 ---
 *Phase: 05-polish-and-hardening*
 *Completed: 2026-02-25*
+
+## Self-Check: PASSED
+
+- factfeed/web/limiter.py: FOUND
+- tests/test_rate_limit.py: FOUND
+- reports/.gitkeep: FOUND
+- 05-01-SUMMARY.md: FOUND
+- Commit 3ae918e: FOUND
+- Commit a31f82c: FOUND

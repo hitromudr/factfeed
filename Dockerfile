@@ -6,11 +6,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files and package source (hatchling needs the package to build)
+# Copy dependency files and minimal package stub (hatchling needs __init__.py to build)
 COPY pyproject.toml uv.lock* ./
-COPY factfeed/ ./factfeed/
+RUN mkdir -p factfeed && touch factfeed/__init__.py
 
-# Install dependencies
+# Install dependencies (cached unless pyproject.toml/uv.lock change)
 RUN uv sync --frozen --no-dev
 
 # Download spaCy English model (pip needed internally by spacy download)

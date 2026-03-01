@@ -152,6 +152,32 @@ header {
     word-wrap: break-word;
 }
 
+/* Fact score in article cards */
+.fact-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.fact-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 3px;
+    color: white;
+}
+
+.fact-high { background: #388e3c; }
+.fact-mid  { background: #f9a825; color: #333; }
+.fact-low  { background: #d32f2f; }
+
+.sentence-breakdown {
+    font-size: 0.75rem;
+    color: #888;
+}
+
 .no-results {
     padding: 2rem 0;
     text-align: center;

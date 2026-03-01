@@ -10,6 +10,12 @@
         <span class="date">{{ article.published_at.strftime('%b %d, %Y') }}</span>
         {% endif %}
     </div>
+    {% if article.total_count %}
+    <div class="fact-score">
+        <span class="fact-badge {% if article.fact_pct >= 70 %}fact-high{% elif article.fact_pct >= 40 %}fact-mid{% else %}fact-low{% endif %}">{{ article.fact_pct }}% facts</span>
+        <span class="sentence-breakdown">{{ article.fact_count }} fact{{ 's' if article.fact_count != 1 else '' }}, {{ article.opinion_count }} opinion{{ 's' if article.opinion_count != 1 else '' }}{% if article.mixed_count %}, {{ article.mixed_count }} mixed{% endif %}</span>
+    </div>
+    {% endif %}
     {% if article.body %}
     <p class="excerpt">{{ article.body[:200] }}{% if article.body|length > 200 %}...{% endif %}</p>
     {% endif %}

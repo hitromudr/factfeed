@@ -9,7 +9,7 @@ from sqlalchemy import Float, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from factfeed.db.models import Article, Source
+from factfeed.db.models import Article, Sentence, Source
 from factfeed.web.deps import get_db
 from factfeed.web.limiter import limiter
 
@@ -28,6 +28,35 @@ def _date_cutoff(from_filter: Optional[str]) -> Optional[datetime]:
     if delta is None:
         return None
     return now - delta
+
+
+async def _attach_fact_scores(db: AsyncSession, articles: list) -> list:
+    """Attach fact_count, opinion_count, mixed_count, total_count to each article."""
+    if not articles:
+        return articles
+    article_ids = [a.id for a in articles]
+    stmt = (
+        select(
+            Sentence.article_id,
+            Sentence.label,
+            func.count().label("cnt"),
+        )
+        .where(Sentence.article_id.in_(article_ids))
+        .group_by(Sentence.article_id, Sentence.label)
+    )
+    result = await db.execute(stmt)
+    # Build {article_id: {label: count}}
+    counts: dict[int, dict[str, int]] = {}
+    for row in result:
+        counts.setdefault(row.article_id, {})[row.label or "unclear"] = row.cnt
+    for article in articles:
+        c = counts.get(article.id, {})
+        article.fact_count = c.get("fact", 0)
+        article.opinion_count = c.get("opinion", 0)
+        article.mixed_count = c.get("mixed", 0)
+        article.total_count = sum(c.values())
+        article.fact_pct = round(100 * article.fact_count / article.total_count) if article.total_count else None
+    return articles
 
 
 async def search_articles(
@@ -60,8 +89,6 @@ async def search_articles(
         stmt = stmt.order_by(Article.published_at.desc().nullslast())
     else:
         # Fact-density: ratio of fact sentences to total sentences (descending)
-        from factfeed.db.models import Sentence
-
         fact_count = (
             select(func.count())
             .where(Sentence.article_id == Article.id, Sentence.label == "fact")
@@ -97,6 +124,7 @@ async def search_page(
 ):
     """Render the search page with results."""
     articles = await search_articles(db, q=q, source=source, from_filter=from_filter, sort=sort)
+    await _attach_fact_scores(db, articles)
 
     # Load available sources for filter dropdown
     sources_result = await db.execute(select(Source).order_by(Source.name))
@@ -131,6 +159,7 @@ async def search_endpoint(
 ):
     """HTMX search endpoint — returns partial or full page."""
     articles = await search_articles(db, q=q, source=source, from_filter=from_filter, sort=sort)
+    await _attach_fact_scores(db, articles)
 
     sources_result = await db.execute(select(Source).order_by(Source.name))
     sources = sources_result.scalars().all()
