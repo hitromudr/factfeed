@@ -3,94 +3,128 @@ _('FactFeed') }}{% endblock %} {% block content %}
 <article class="article-detail">
     <header class="article-header">
         <h1>{{ article.title }}</h1>
-        <div class="article-meta">
-            {% if article.source %}
-            <span class="source-badge">{{ article.source.name }}</span>
-            {% endif %} {% if article.author %}
-            <span class="author">{{ _('by') }} {{ article.author }}</span>
-            {% endif %} {% if article.published_at %}
-            <span class="date"
-                >{{ article.published_at.strftime('%B %d, %Y') }}</span
-            >
-            {% endif %}
+
+        <div class="article-meta-modern">
+            <div class="meta-main">
+                {% if article.source %}
+                <span class="source-badge">{{ article.source.name }}</span>
+                {% endif %} {% if article.author %}
+                <span class="author">{{ _('by') }} {{ article.author }}</span>
+                {% endif %} {% if article.published_at %}
+                <span class="date"
+                    >{{ article.published_at.strftime('%d %b %Y') }}</span
+                >
+                {% endif %}
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <span class="legend-swatch fact"></span>
+                    <span>{{ _('Fact') }}</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-swatch opinion"></span>
+                    <span>{{ _('Opinion') }}</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-swatch mixed"></span>
+                    <span>{{ _('Mixed/Unclear') }}</span>
+                </div>
+            </div>
         </div>
 
-        <div class="legend">
-            <div class="legend-item">
-                <span class="legend-swatch fact"></span>
-                <span>{{ _('Fact') }}</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-swatch opinion"></span>
-                <span>{{ _('Opinion') }}</span>
-            </div>
-            <div class="legend-item">
-                <span class="legend-swatch mixed"></span>
-                <span>{{ _('Mixed/Unclear') }}</span>
-            </div>
-        </div>
-    </header>
+        {% if similar_articles %}
+        <div class="providers-section">
+            <p class="providers-label">{{ _('Read from other sources') }}:</p>
+            <div class="providers-list">
+                <span class="provider-chip active"
+                    >{{ article.source.name }}</span
+                >
 
-    <div class="article-body">
-        {% if non_opinion_sentences or opinion_sentences %} {% for sentence in
-        non_opinion_sentences %} {% set conf_label = "High" if
-        sentence.confidence is not none and sentence.confidence >= 0.7 else
-        ("Medium" if sentence.confidence is not none and sentence.confidence >=
-        0.4 else "Low") %}
-        <span
-            class="sentence {{ sentence.label or 'unclear' }}"
-            title="{{ _(conf_label) }} {{ _('confidence') }}"
-            >{{ sentence.text }}
-        </span>
-        {% endfor %} {% else %}
-        <div class="no-classification">
-            <p>{{ article.body or _('No content available.') }}</p>
-            <p
-                class="note"
-                style="
-                    margin-top: 1rem;
-                    color: var(--text-muted);
-                    font-style: italic;
-                "
-            >
-                {{ _('Classification pending.') }}
-            </p>
+                {% for other in similar_articles %}
+                <a
+                    href="/article/{{ other.id }}{{ '?lang=' ~ locale if locale else '' }}"
+                    class="provider-chip"
+                >
+                    {{ other.source.name }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
+    </header>
+
+    <div
+        class="article-body"
+        {%
+        if
+        locale
+        !="en"
+        %}
+        hx-get="/article/{{ article.id }}/content?lang={{ locale }}"
+        hx-trigger="load"
+        {%
+        endif
+        %}
+    >
+        {% if locale != 'en' %}
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ _('Translating article...') }}</p>
+        </div>
+        {% else %} {% include "_article_body.html" %} {% endif %}
     </div>
 
-    {% if opinion_sentences %}
-    <details class="opinion-section">
-        <summary class="opinion-toggle">
-            {{ _('Show opinion content') }} ({{ opinion_count }} {{
-            _('sentences') }})
-        </summary>
-        <div class="opinion-content">
-            {% for sentence in opinion_sentences %} {% set conf_label = "High"
-            if sentence.confidence is not none and sentence.confidence >= 0.7
-            else ("Medium" if sentence.confidence is not none and
-            sentence.confidence >= 0.4 else "Low") %}
-            <span
-                class="sentence opinion"
-                title="{{ _(conf_label) }} {{ _('confidence') }}"
-                >{{ sentence.text }}
-            </span>
-            {% endfor %}
-        </div>
-    </details>
-    {% endif %}
+    <footer class="article-footer-modern">
+        <a href="javascript:history.back()" class="btn-secondary">
+            &larr; {{ _('Back to search') }}
+        </a>
 
-    <footer class="article-footer">
-        <a href="/" class="back-link">&larr; {{ _('Back to search') }}</a>
         {% if article.url %}
         <a
             href="{{ article.url }}"
             target="_blank"
             rel="noopener noreferrer"
-            class="original-link"
-            >{{ _('Read original') }}</a
+            class="btn-primary"
         >
+            {{ _('Read original') }}
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                style="margin-left: 6px"
+            >
+                <path
+                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                ></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+        </a>
         {% endif %}
     </footer>
 </article>
+
+<script>
+    document.addEventListener("click", function (e) {
+        if (e.target.classList.contains("sentence")) {
+            // Remove active class from all sentences
+            document
+                .querySelectorAll(".sentence")
+                .forEach((el) => el.classList.remove("active"));
+            // Add active class to clicked sentence
+            e.target.classList.add("active");
+        } else {
+            // Clicked outside, remove active from all
+            document
+                .querySelectorAll(".sentence")
+                .forEach((el) => el.classList.remove("active"));
+        }
+    });
+</script>
 {% endblock %}

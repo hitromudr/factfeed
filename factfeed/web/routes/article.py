@@ -1,5 +1,6 @@
 """Article detail route with sentence highlighting and collapsible opinions."""
 
+import asyncio
 from typing import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article
+from factfeed.nlp.translator import translate_text
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 
@@ -49,16 +51,23 @@ async def article_detail(
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    # Split sentences by type for template rendering
-    non_opinion_sentences = []
-    opinion_sentences = []
+    # Find other providers covering the same story
+    similar_stmt = (
+        select(Article)
+        .options(selectinload(Article.source))
+        .where(Article.title == article.title, Article.id != article.id)
+        .order_by(Article.published_at.desc())
+    )
+    similar_result = await db.execute(similar_stmt)
+    similar_articles = similar_result.scalars().all()
 
+    # Translate title immediately (fast)
+    if locale != "en":
+        article.title = await translate_text(article.title, locale)
+
+    # Add confidence labels to all sentences
     for s in article.sentences:
         s.confidence_label = _confidence_label(s.confidence)
-        if s.label == "opinion":
-            opinion_sentences.append(s)
-        else:
-            non_opinion_sentences.append(s)
 
     return templates.TemplateResponse(
         "article.html",
@@ -66,11 +75,57 @@ async def article_detail(
             "request": request,
             "article": article,
             "sentences": article.sentences,
-            "non_opinion_sentences": non_opinion_sentences,
-            "opinion_sentences": opinion_sentences,
-            "opinion_count": len(opinion_sentences),
             "confidence_label": _confidence_label,
+            "similar_articles": similar_articles,
             "_": trans,
             "locale": locale,
+        },
+    )
+
+
+@router.get("/article/{article_id}/content", response_class=HTMLResponse)
+async def article_content(
+    request: Request,
+    article_id: int,
+    db: AsyncSession = Depends(get_db),
+    trans: Callable[[str], str] = Depends(get_translator),
+    locale: str = Depends(get_locale),
+):
+    """HTMX endpoint to load translated article content."""
+    stmt = (
+        select(Article)
+        .options(selectinload(Article.sentences))
+        .where(Article.id == article_id)
+    )
+    result = await db.execute(stmt)
+    article = result.scalar_one_or_none()
+
+    if not article:
+        return ""
+
+    if locale != "en":
+        if not article.sentences and article.body:
+            # Translate full body
+            article.body = await translate_text(article.body, locale)
+
+        tasks = [translate_text(s.text, locale) for s in article.sentences]
+        if tasks:
+            translated_texts = await asyncio.gather(*tasks)
+            for s, t_text in zip(article.sentences, translated_texts):
+                s.text = t_text
+
+    # Add confidence labels
+    for s in article.sentences:
+        s.confidence_label = _confidence_label(s.confidence)
+
+    # We only render the body part
+    return templates.TemplateResponse(
+        "_article_body.html",
+        {
+            "request": request,
+            "article": article,
+            "sentences": article.sentences,
+            "confidence_label": _confidence_label,
+            "_": trans,
         },
     )

@@ -5,6 +5,7 @@
 - ✅ **v1.0 MVP** — Phases 1-5 (shipped 2026-02-25)
 - ✅ **v1.1 API & UI** — Phase 6 (shipped 2026-02-25)
 - ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
+- 🚧 **v1.3 Redesign & Translation** — Phases 8-9 (in progress)
 
 ## Phases
 
@@ -38,6 +39,24 @@ Plans:
 Plans:
 - [x] Plan 7.1: Implement i18n with Babel and Russian translation
 
+### Phase 8: UI Redesign & Localization Widget
+
+**Goal:** Professionalize the UI and add language switching
+**Depends on:** Phase 7
+**Plans:** 1 plan
+
+Plans:
+- [ ] Plan 8.1: UI Refinement and Language Switcher
+
+### Phase 9: Content Auto-Translation
+
+**Goal:** Translate article content on the fly
+**Depends on:** Phase 8
+**Plans:** 1 plan
+
+Plans:
+- [ ] Plan 9.1: Integrate translation service
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -49,3 +68,5 @@ Plans:
 | 5. Polish and Hardening | v1.0 | 2/2 | Complete | 2026-02-25 |
 | 6. API & UI Polish | v1.1 | 2/2 | Complete | 2026-02-25 |
 | 7. Localization | v1.2 | 1/1 | Complete | 2026-03-01 |
+| 8. UI Redesign & Widget | v1.3 | 0/1 | Planned | - |
+| 9. Content Translation | v1.3 | 0/1 | Planned | - |

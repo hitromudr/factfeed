@@ -11,7 +11,7 @@ class SourceOut(BaseModel):
 
     id: int
     name: str
-    url: str
+    feed_url: str
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -23,8 +23,8 @@ class SentenceOut(BaseModel):
     label: str = Field(
         ..., description="Classification label: fact, opinion, mixed, unclear"
     )
-    score: float = Field(..., description="Confidence score of the classification")
-    sentence_index: int
+    confidence: float = Field(..., description="Confidence score of the classification")
+    position: int
 
     model_config = ConfigDict(from_attributes=True)
 

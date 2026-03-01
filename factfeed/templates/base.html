@@ -9,7 +9,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&display=swap"
             rel="stylesheet"
         />
     </head>
@@ -19,6 +19,21 @@
             <nav class="nav-links">
                 <a href="/">{{ _('Search') }}</a>
                 <a href="/docs">{{ _('API Docs') }}</a>
+                <div class="lang-switcher">
+                    <button
+                        onclick="setLang('en')"
+                        class="{% if locale == 'en' %}active{% endif %}"
+                    >
+                        EN
+                    </button>
+                    <span class="sep">|</span>
+                    <button
+                        onclick="setLang('ru')"
+                        class="{% if locale == 'ru' %}active{% endif %}"
+                    >
+                        RU
+                    </button>
+                </div>
             </nav>
         </header>
 
@@ -32,5 +47,12 @@
                 <a href="/docs">{{ _('API Documentation') }}</a>
             </p>
         </footer>
+        <script>
+            function setLang(lang) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("lang", lang);
+                window.location.href = url.toString();
+            }
+        </script>
     </body>
 </html>

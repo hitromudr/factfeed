@@ -231,18 +231,18 @@ async def test_article_sentence_highlighting(client, seed_data):
 
 
 @pytest.mark.asyncio
-async def test_article_opinion_collapsed(client, seed_data):
-    """Article with opinion sentences has collapsed details/summary section."""
+async def test_article_renders_all_sentences(client, seed_data):
+    """Article renders all sentences, both facts and opinions, directly in the body."""
     art_id = seed_data["art2"].id
     resp = await client.get(f"/article/{art_id}")
     assert resp.status_code == 200
-    # Should have the opinion section with details/summary
-    assert "opinion-section" in resp.text
-    assert "<details" in resp.text
-    assert "<summary" in resp.text
-    assert "Show opinion content" in resp.text
-    # Opinion sentence text should be inside the details element
-    assert "Many analysts believe" in resp.text
+
+    # Both fact and opinion sentences should be rendered in the body
+    assert "The economy showed mixed signals this quarter." in resp.text
+    assert "Many analysts believe the outlook is poor." in resp.text
+
+    # Opinion sentence should have the 'opinion' class for highlighting
+    assert 'class="sentence opinion' in resp.text
 
 
 @pytest.mark.asyncio

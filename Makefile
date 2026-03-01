@@ -1,48 +1,55 @@
-.PHONY: help install run test migrate revision clean docker-up docker-down i18n-extract i18n-update i18n-compile
+.PHONY: help install run test migrate revision clean docker-up docker-down i18n-extract i18n-update i18n-compile i18n-init
 
 # Configuration
 APP_MODULE := factfeed.web.main:app
 HOST := 0.0.0.0
-PORT := 8000
+PORT := 8001
+# Connect to Docker Postgres from host (port 5433)
+LOCAL_DB_URL := postgresql+asyncpg://factfeed:factfeed@localhost:5433/factfeed
+TEST_DB_URL := postgresql+asyncpg://factfeed:factfeed@localhost:5433/factfeed_test
 
 help:
 	@echo "FactFeed Project Management"
 	@echo "==========================="
 	@echo "Dev Commands:"
-	@echo "  make install       Install dependencies using uv"
-	@echo "  make run           Start local development server"
+	@echo "  make install       Install dependencies"
+	@echo "  make run           Start local server (uses docker db on port 5433)"
 	@echo "  make test          Run tests"
-	@echo "  make clean         Remove cache files"
+	@echo "  make clean         Cleanup"
 	@echo ""
-	@echo "Database:"
-	@echo "  make migrate       Apply database migrations"
-	@echo "  make revision      Create a new migration (interactive)"
+	@echo "DB / Docker:"
+	@echo "  make migrate       Apply migrations"
+	@echo "  make revision      Create migration"
+	@echo "  make init-test-db  Create test database in Docker"
+	@echo "  make docker-up     Start full stack in Docker"
+	@echo "  make docker-down   Stop Docker"
 	@echo ""
-	@echo "Docker:"
-	@echo "  make docker-up     Start services via Docker Compose"
-	@echo "  make docker-down   Stop Docker services"
-	@echo ""
-	@echo "Localization (i18n):"
-	@echo "  make i18n-extract  Extract translation strings to .pot file"
-	@echo "  make i18n-update   Update translation catalogs (.po) from .pot"
-	@echo "  make i18n-compile  Compile translation files (.mo)"
-	@echo "  make i18n-init     Initialize a new language (interactive)"
+	@echo "i18n:"
+	@echo "  make i18n-extract  Extract strings"
+	@echo "  make i18n-update   Update .po"
+	@echo "  make i18n-compile  Compile .mo"
+	@echo "  make i18n-init     Init new language"
 
 install:
 	uv sync
+	uv pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0.tar.gz
 
 run:
-	uv run uvicorn $(APP_MODULE) --host $(HOST) --port $(PORT) --reload
+	DATABASE_URL=$(LOCAL_DB_URL) uv run uvicorn $(APP_MODULE) --host $(HOST) --port $(PORT) --reload
 
 test:
-	uv run pytest
+	TEST_DATABASE_URL=$(TEST_DB_URL) uv run pytest
+
+init-test-db:
+	docker-compose exec -T postgres createdb -U factfeed factfeed_test || true
 
 migrate:
-	uv run alembic upgrade head
+	DATABASE_URL=$(LOCAL_DB_URL) uv run alembic upgrade head
 
 revision:
-	@read -p "Enter migration message: " msg; \
-	uv run alembic revision --autogenerate -m "$$msg"
+	@printf "Enter migration message: "; \
+	read msg; \
+	DATABASE_URL=$(LOCAL_DB_URL) uv run alembic revision --autogenerate -m "$$msg"
 
 docker-up:
 	docker-compose up --build
@@ -60,7 +67,8 @@ i18n-compile:
 	uv run pybabel compile -d factfeed/translations
 
 i18n-init:
-	@read -p "Enter locale code (e.g. 'es' for Spanish): " lang; \
+	@printf "Enter locale code: "; \
+	read lang; \
 	uv run pybabel init -i factfeed/translations/messages.pot -d factfeed/translations -l $$lang
 
 clean:

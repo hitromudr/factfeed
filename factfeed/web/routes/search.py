@@ -1,5 +1,6 @@
 """Search page route with full-text search, source/date filters, and sort."""
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Sentence, Source
+from factfeed.nlp.translator import translate_text
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 from factfeed.web.limiter import limiter
@@ -71,13 +73,31 @@ async def _attach_fact_scores(db: AsyncSession, articles: list) -> list:
 async def search_articles(
     db: AsyncSession,
     q: str = "",
-    source: Optional[int] = None,
+    source: Optional[str] = None,
     from_filter: Optional[str] = None,
+    classification: Optional[str] = None,
     sort: str = "facts",
-    limit: int = 50,
+    limit: int = 20,
 ):
     """Build and execute a composable search query with FTS, filters, and sort."""
     stmt = select(Article).options(selectinload(Article.source))
+
+    # Subqueries for fact density calculation
+    fact_count = (
+        select(func.count())
+        .where(Sentence.article_id == Article.id, Sentence.label == "fact")
+        .correlate(Article)
+        .scalar_subquery()
+    )
+    total_count = (
+        select(func.count())
+        .where(Sentence.article_id == Article.id)
+        .correlate(Article)
+        .scalar_subquery()
+    )
+    fact_ratio = func.coalesce(
+        func.cast(fact_count, Float) / func.nullif(total_count, 0), 0
+    )
 
     # Full-text search filter
     if q.strip():
@@ -85,35 +105,27 @@ async def search_articles(
         stmt = stmt.where(Article.search_vector.op("@@")(ts_query))
 
     # Source filter
-    if source is not None:
-        stmt = stmt.where(Article.source_id == source)
+    if source and source.isdigit():
+        stmt = stmt.where(Article.source_id == int(source))
 
     # Date range filter
     cutoff = _date_cutoff(from_filter)
     if cutoff is not None:
         stmt = stmt.where(Article.published_at >= cutoff)
 
+    # Classification filter
+    if classification == "fact":
+        stmt = stmt.where(fact_ratio >= 0.7)
+    elif classification == "opinion":
+        stmt = stmt.where(fact_ratio <= 0.4)
+    elif classification == "mixed":
+        stmt = stmt.where(fact_ratio > 0.4, fact_ratio < 0.7)
+
     # Sort order
     if sort == "recent":
         stmt = stmt.order_by(Article.published_at.desc().nullslast())
     else:
         # Fact-density: ratio of fact sentences to total sentences (descending)
-        fact_count = (
-            select(func.count())
-            .where(Sentence.article_id == Article.id, Sentence.label == "fact")
-            .correlate(Article)
-            .scalar_subquery()
-        )
-        total_count = (
-            select(func.count())
-            .where(Sentence.article_id == Article.id)
-            .correlate(Article)
-            .scalar_subquery()
-        )
-        # Articles with no sentences go last; otherwise order by fact ratio descending
-        fact_ratio = func.coalesce(
-            func.cast(fact_count, Float) / func.nullif(total_count, 0), 0
-        )
         stmt = stmt.order_by(fact_ratio.desc(), Article.published_at.desc().nullslast())
 
     stmt = stmt.limit(limit)
@@ -126,18 +138,73 @@ async def search_articles(
 async def search_page(
     request: Request,
     q: str = "",
-    source: Optional[int] = None,
+    source: Optional[str] = None,
     from_filter: Optional[str] = Query(None, alias="from"),
+    classification: Optional[str] = None,
     sort: str = "facts",
     db: AsyncSession = Depends(get_db),
-    trans: Callable[[str], str] = Depends(get_translator),
     locale: str = Depends(get_locale),
 ):
     """Render the search page with results."""
+    trans = get_translator(request)
+
     articles = await search_articles(
-        db, q=q, source=source, from_filter=from_filter, sort=sort
+        db,
+        q=q,
+        source=source,
+        from_filter=from_filter,
+        classification=classification,
+        sort=sort,
     )
     await _attach_fact_scores(db, articles)
+
+    # Translate titles AND snippets if needed
+    if locale != "en":
+
+        async def translate_item(article):
+            t_title = await translate_text(article.title, locale)
+            t_body = await translate_text(
+                article.body[:300] if article.body else "", locale
+            )
+            return t_title, t_body
+
+        tasks = [translate_item(a) for a in articles]
+        if tasks:
+            results = await asyncio.gather(*tasks)
+            for article, (title, body) in zip(articles, results):
+                article.title = title
+                # We store the translated snippet temporarily on the object
+                # This is safe as long as we don't commit the session
+                article.translated_snippet = body
+
+    # Group articles by title
+    groups = {}
+    for article in articles:
+        # Use title as key
+        key = article.title
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(article)
+
+    article_groups = []
+    for title, group in groups.items():
+        # Sort group by date desc to pick the freshest as 'main'
+        group.sort(
+            key=lambda a: a.published_at.timestamp() if a.published_at else 0,
+            reverse=True,
+        )
+        main_article = group[0]
+        article_groups.append(
+            {
+                "title": title,
+                "articles": group,
+                "main": main_article,
+                # Use translated snippet if available, else original body
+                "snippet": getattr(
+                    main_article, "translated_snippet", main_article.body
+                ),
+            }
+        )
 
     # Load available sources for filter dropdown
     sources_result = await db.execute(select(Source).order_by(Source.name))
@@ -145,11 +212,12 @@ async def search_page(
 
     context = {
         "request": request,
-        "articles": articles,
+        "article_groups": article_groups,
         "sources": sources,
         "q": q,
         "source": source,
         "from_filter": from_filter,
+        "classification": classification,
         "sort": sort,
         "_": trans,
         "locale": locale,
@@ -167,29 +235,79 @@ async def search_page(
 async def search_endpoint(
     request: Request,
     q: str = "",
-    source: Optional[int] = None,
+    source: Optional[str] = None,
     from_filter: Optional[str] = Query(None, alias="from"),
+    classification: Optional[str] = None,
     sort: str = "facts",
     db: AsyncSession = Depends(get_db),
-    trans: Callable[[str], str] = Depends(get_translator),
     locale: str = Depends(get_locale),
 ):
     """HTMX search endpoint — returns partial or full page."""
+    trans = get_translator(request)
+
     articles = await search_articles(
-        db, q=q, source=source, from_filter=from_filter, sort=sort
+        db,
+        q=q,
+        source=source,
+        from_filter=from_filter,
+        classification=classification,
+        sort=sort,
     )
     await _attach_fact_scores(db, articles)
+
+    if locale != "en":
+
+        async def translate_item(article):
+            t_title = await translate_text(article.title, locale)
+            t_body = await translate_text(
+                article.body[:300] if article.body else "", locale
+            )
+            return t_title, t_body
+
+        tasks = [translate_item(a) for a in articles]
+        if tasks:
+            results = await asyncio.gather(*tasks)
+            for article, (title, body) in zip(articles, results):
+                article.title = title
+                article.translated_snippet = body
+
+    # Group articles by title
+    groups = {}
+    for article in articles:
+        key = article.title
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(article)
+
+    article_groups = []
+    for title, group in groups.items():
+        group.sort(
+            key=lambda a: a.published_at.timestamp() if a.published_at else 0,
+            reverse=True,
+        )
+        main_article = group[0]
+        article_groups.append(
+            {
+                "title": title,
+                "articles": group,
+                "main": main_article,
+                "snippet": getattr(
+                    main_article, "translated_snippet", main_article.body
+                ),
+            }
+        )
 
     sources_result = await db.execute(select(Source).order_by(Source.name))
     sources = sources_result.scalars().all()
 
     context = {
         "request": request,
-        "articles": articles,
+        "article_groups": article_groups,
         "sources": sources,
         "q": q,
         "source": source,
         "from_filter": from_filter,
+        "classification": classification,
         "sort": sort,
         "_": trans,
         "locale": locale,

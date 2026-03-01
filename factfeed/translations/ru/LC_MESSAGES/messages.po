@@ -160,3 +160,24 @@ msgstr "Средняя"
 
 msgid "Low"
 msgstr "Низкая"
+
+msgid "Filter by content type"
+msgstr "Фильтр по типу"
+
+msgid "All Content"
+msgstr "Весь контент"
+
+msgid "Mostly Facts"
+msgstr "В основном факты"
+
+msgid "Mostly Opinions"
+msgstr "В основном мнения"
+
+msgid "Mixed"
+msgstr "Смешанный"
+
+msgid "Read from other sources"
+msgstr "Читать в других источниках"
+
+msgid "Translating article..."
+msgstr "Перевод статьи..."

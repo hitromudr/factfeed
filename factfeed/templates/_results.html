@@ -1,53 +1,92 @@
-{% if articles %} {% for article in articles %}
+{% if article_groups %} {% for group in article_groups %}
 <div class="article-card">
-    <h2><a href="/article/{{ article.id }}">{{ article.title }}</a></h2>
-
-    <div class="article-meta">
-        {% if article.source %}
-        <span class="source-badge">{{ article.source.name }}</span>
-        {% endif %} {% if article.published_at %}
-        <span class="date"
-            >{{ article.published_at.strftime('%b %d, %Y') }}</span
+    <h2 style="margin-bottom: 0.75rem; line-height: 1.3">
+        <a
+            href="/article/{{ group.main.id }}{{ '?lang=' ~ locale if locale and locale != 'en' else '' }}"
+            style="text-decoration: none; color: inherit"
+            >{{ group.title }}</a
         >
+    </h2>
+
+    <div
+        class="article-sources"
+        style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        "
+    >
+        {% set shown_sources = [] %} {% for article in group.articles %} {% if
+        article.source.name not in shown_sources %} {% set _dummy =
+        shown_sources.append(article.source.name) %} {% set fact_ratio = 0 %} {%
+        if article.total_count and article.total_count > 0 %} {% set fact_ratio
+        = (article.fact_count / article.total_count) %} {% endif %} {% set
+        indicator_color = 'var(--color-mixed)' %} {% set indicator_text =
+        _('Mixed') %} {% if fact_ratio >= 0.7 %} {% set indicator_color =
+        'var(--color-fact)' %} {% set indicator_text = _('Fact') %} {% elif
+        fact_ratio <= 0.4 %} {% set indicator_color = 'var(--color-opinion)' %}
+        {% set indicator_text = _('Opinion') %} {% endif %}
+
+        <a
+            href="/article/{{ article.id }}{{ '?lang=' ~ locale if locale and locale != 'en' else '' }}"
+            class="source-chip"
+            style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 10px;
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                text-decoration: none;
+                color: var(--text-main);
+                font-size: 0.85rem;
+                font-weight: 600;
+                transition: all 0.2s;
+                background: var(--card-bg);
+            "
+            onmouseover="this.style.borderColor = 'var(--text-muted)'"
+            onmouseout="this.style.borderColor = 'var(--border-color)'"
+        >
+            <span
+                style="width: 8px; height: 8px; border-radius: 50%; background-color: {{ indicator_color }};"
+            ></span>
+            {{ article.source.name }}
+            <span
+                style="color: {{ indicator_color }}; font-size: 0.75rem; font-weight: bold; margin-left: 2px;"
+            >
+                {{ indicator_text }}
+            </span>
+        </a>
+        {% endif %} {% endfor %} {% if group.main.published_at %}
+        <span
+            class="date"
+            style="
+                margin-left: auto;
+                font-size: 0.9rem;
+                color: var(--text-muted);
+            "
+        >
+            {{ group.main.published_at.strftime('%d %b %Y') }}
+        </span>
         {% endif %}
     </div>
 
-    {% if article.total_count and article.total_count > 0 %} {% set fact_pct =
-    (article.fact_count / article.total_count * 100) %} {% set opinion_pct =
-    (article.opinion_count / article.total_count * 100) %} {% set mixed_pct =
-    (article.mixed_count / article.total_count * 100) %}
-
-    <div
-        class="fact-meter"
-        title="{{ article.fact_count }} {{ _('facts') }}, {{ article.opinion_count }} {{ _('opinions') }}, {{ article.mixed_count }} {{ _('mixed') }}"
+    {% if group.snippet %}
+    <p
+        style="
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
+            color: var(--text-body);
+            line-height: 1.6;
+            margin: 0;
+        "
     >
-        <div class="meter-track">
-            <div class="meter-segment fact" style="flex: {{ fact_pct }}"></div>
-            <div
-                class="meter-segment mixed"
-                style="flex: {{ mixed_pct }}"
-            ></div>
-            <div
-                class="meter-segment opinion"
-                style="flex: {{ opinion_pct }}"
-            ></div>
-        </div>
-        <div
-            class="meter-label {% if fact_pct >= 70 %}high-fact{% elif fact_pct < 40 %}low-fact{% endif %}"
-        >
-            {{ fact_pct|int }}% {{ _('Facts') }}
-        </div>
-    </div>
-    {% else %}
-    <div class="fact-meter">
-        <div class="meter-track" style="background: #e2e8f0"></div>
-        <div class="meter-label" style="color: #94a3b8; font-weight: 400">
-            {{ _('Processing') }}
-        </div>
-    </div>
-    {% endif %} {% if article.body %}
-    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5">
-        {{ article.body[:180] }}{% if article.body|length > 180 %}...{% endif %}
+        {{ group.snippet[:280]|striptags }}{% if group.snippet|length > 280
+        %}...{% endif %}
     </p>
     {% endif %}
 </div>

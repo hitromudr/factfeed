@@ -1,145 +1,67 @@
-{% extends "base.html" %} {% block title %}{{ _('Search') }} - {{ _('FactFeed')
-}}{% endblock %} {% block content %}
+{% extends "base.html" %}
+{% block title %}{{ _('Search') }} - {{ _('FactFeed') }}{% endblock %}
+{% block content %}
 <section class="search-section">
     <div class="search-bar">
-        <input
-            type="search"
-            name="q"
-            value="{{ q }}"
-            placeholder="{{ _('Search for topics, people, or events...') }}"
-            autocomplete="off"
-            hx-get="/search"
-            hx-target="#results"
-            hx-trigger="keyup changed delay:300ms, search"
-            hx-include="[name='source'],[name='from'],[name='sort']"
-            hx-push-url="true"
-        />
-        <button
-            type="button"
-            hx-get="/search"
-            hx-target="#results"
-            hx-include="[name='q'],[name='source'],[name='from'],[name='sort']"
-            hx-push-url="true"
-        >
+        <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Search for topics, people, or events...') }}" autocomplete="off"
+               hx-get="/search" hx-target="#results" hx-trigger="keyup changed delay:300ms, search"
+               hx-include="[name='source'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true" />
+        <button type="button" hx-get="/search" hx-target="#results"
+                hx-include="[name='q'],[name='source'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true">
             {{ _('Search') }}
         </button>
     </div>
 
     <div class="filter-row">
-        <select
-            name="source"
-            aria-label="{{ _('Filter by source') }}"
-            hx-get="/search"
-            hx-target="#results"
-            hx-trigger="change"
-            hx-include="[name='q'],[name='from'],[name='sort']"
-            hx-push-url="true"
-        >
+        <select name="source" aria-label="{{ _('Filter by source') }}" hx-get="/search" hx-target="#results" hx-trigger="change"
+                hx-include="[name='q'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true">
             <option value="">{{ _('All Sources') }}</option>
             {% for s in sources %}
-            <option
-                value="{{ s.id }}"
-                {%
-                if
-                source=""
-                ="s.id"
-                %}selected{%
-                endif
-                %}
-            >
-                {{ s.name }}
-            </option>
+            <option value="{{ s.id }}" {% if source == s.id %}selected{% endif %}>{{ s.name }}</option>
             {% endfor %}
         </select>
 
-        <select
-            name="from"
-            aria-label="{{ _('Filter by date') }}"
-            hx-get="/search"
-            hx-target="#results"
-            hx-trigger="change"
-            hx-include="[name='q'],[name='source'],[name='sort']"
-            hx-push-url="true"
-        >
-            <option value="" {% if not from_filter %}selected{% endif %}>
-                {{ _('Any time') }}
-            </option>
-            <option
-                value="24h"
-                {%
-                if
-                from_filter=""
-                ="24h"
-                %}selected{%
-                endif
-                %}
-            >
-                {{ _('Last 24 hours') }}
-            </option>
-            <option value="7d" {% if from_filter="" ="7d" %}selected{% endif %}>
-                {{ _('Last 7 days') }}
-            </option>
-            <option
-                value="30d"
-                {%
-                if
-                from_filter=""
-                ="30d"
-                %}selected{%
-                endif
-                %}
-            >
-                {{ _('Last 30 days') }}
-            </option>
+        <select name="classification" aria-label="{{ _('Filter by content type') }}" hx-get="/search" hx-target="#results" hx-trigger="change"
+                hx-include="[name='q'],[name='source'],[name='from'],[name='sort']" hx-push-url="true">
+            <option value="" {% if not classification %}selected{% endif %}>{{ _('All Content') }}</option>
+            <option value="fact" {% if classification == 'fact' %}selected{% endif %}>{{ _('Mostly Facts') }}</option>
+            <option value="opinion" {% if classification == 'opinion' %}selected{% endif %}>{{ _('Mostly Opinions') }}</option>
+            <option value="mixed" {% if classification == 'mixed' %}selected{% endif %}>{{ _('Mixed') }}</option>
+        </select>
+
+        <select name="from" aria-label="{{ _('Filter by date') }}" hx-get="/search" hx-target="#results" hx-trigger="change"
+                hx-include="[name='q'],[name='source'],[name='classification'],[name='sort']" hx-push-url="true">
+            <option value="" {% if not from_filter %}selected{% endif %}>{{ _('Any time') }}</option>
+            <option value="24h" {% if from_filter == '24h' %}selected{% endif %}>{{ _('Last 24 hours') }}</option>
+            <option value="7d" {% if from_filter == '7d' %}selected{% endif %}>{{ _('Last 7 days') }}</option>
+            <option value="30d" {% if from_filter == '30d' %}selected{% endif %}>{{ _('Last 30 days') }}</option>
         </select>
 
         <div class="sort-toggle">
-            <input
-                type="hidden"
-                name="sort"
-                id="sort-input"
-                value="{{ sort }}"
-            />
-            <button
-                type="button"
-                class="sort-btn {% if sort != 'recent' %}active{% endif %}"
-                onclick="updateSort('facts', this)"
-                hx-get="/search"
-                hx-target="#results"
-                hx-vals='{"sort": "facts"}'
-                hx-include="[name='q'],[name='source'],[name='from']"
-                hx-push-url="true"
-            >
+            <input type="hidden" name="sort" id="sort-input" value="{{ sort }}">
+            <button type="button" class="sort-btn {% if sort != 'recent' %}active{% endif %}" onclick="updateSort('facts', this)"
+                    hx-get="/search" hx-target="#results" hx-vals='{"sort": "facts"}'
+                    hx-include="[name='q'],[name='source'],[name='from'],[name='classification']" hx-push-url="true">
                 {{ _('Fact density') }}
             </button>
-            <button
-                type="button"
-                class="sort-btn {% if sort == 'recent' %}active{% endif %}"
-                onclick="updateSort('recent', this)"
-                hx-get="/search"
-                hx-target="#results"
-                hx-vals='{"sort": "recent"}'
-                hx-include="[name='q'],[name='source'],[name='from']"
-                hx-push-url="true"
-            >
+            <button type="button" class="sort-btn {% if sort == 'recent' %}active{% endif %}" onclick="updateSort('recent', this)"
+                    hx-get="/search" hx-target="#results" hx-vals='{"sort": "recent"}'
+                    hx-include="[name='q'],[name='source'],[name='from'],[name='classification']" hx-push-url="true">
                 {{ _('Most recent') }}
             </button>
         </div>
     </div>
 </section>
 
-<section id="results">{% include "_results.html" %}</section>
+<section id="results">
+    {% include "_results.html" %}
+</section>
 
 <script>
     function updateSort(value, btn) {
-        // Update hidden input so other filters pick up the new sort order
         document.getElementById("sort-input").value = value;
-
-        // Update visual state
-        document
-            .querySelectorAll(".sort-btn")
-            .forEach((el) => el.classList.remove("active"));
-        btn.classList.add("active");
+        document.querySelectorAll('.sort-btn').forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
     }
 </script>
 {% endblock %}

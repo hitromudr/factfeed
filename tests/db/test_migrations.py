@@ -11,14 +11,16 @@ These tests verify the physical PostgreSQL schema matches all Phase 1 success cr
 Tests run against a real PostgreSQL database (factfeed_test).
 SQLite cannot be used — GENERATED ALWAYS AS and GIN indexes are PostgreSQL-specific.
 """
-import pytest
-from sqlalchemy import text, select, insert
-from factfeed.db.models import Article, Sentence, Source
 
+import pytest
+from sqlalchemy import insert, select, text
+
+from factfeed.db.models import Article, Sentence, Source
 
 # ---------------------------------------------------------------------------
 # Table existence tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_tables_exist(db_session):
@@ -41,6 +43,7 @@ async def test_tables_exist(db_session):
 # ---------------------------------------------------------------------------
 # search_vector GENERATED column tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_search_vector_is_generated_column(db_session):
@@ -73,14 +76,13 @@ async def test_gin_index_exists(db_session):
     )
     row = result.fetchone()
     assert row is not None, "GIN index ix_articles_search_vector not found on articles"
-    assert "gin" in row[1].lower(), (
-        f"Expected GIN index, got: {row[1]}"
-    )
+    assert "gin" in row[1].lower(), f"Expected GIN index, got: {row[1]}"
 
 
 # ---------------------------------------------------------------------------
 # url_hash unique constraint test
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_url_hash_unique_constraint_exists(db_session):
@@ -102,6 +104,7 @@ async def test_url_hash_unique_constraint_exists(db_session):
 # ---------------------------------------------------------------------------
 # sentences child table tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_sentences_columns_exist(db_session):
@@ -147,14 +150,13 @@ async def test_sentences_fk_to_articles(db_session):
     row = result.fetchone()
     assert row is not None, "sentences.article_id foreign key to articles not found"
     assert row[2] == "articles", f"FK references {row[2]!r}, expected 'articles'"
-    assert row[3] == "CASCADE", (
-        f"FK delete rule is {row[3]!r}, expected CASCADE"
-    )
+    assert row[3] == "CASCADE", f"FK delete rule is {row[3]!r}, expected CASCADE"
 
 
 # ---------------------------------------------------------------------------
 # Behavioral test: search_vector auto-populated on INSERT
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_search_vector_auto_populated_on_insert(db_session):
@@ -218,5 +220,5 @@ async def test_url_hash_unique_constraint_enforced(db_session):
     )
     db_session.add(article2)
 
-    with pytest.raises(sqlalchemy.exc.IntegrityError, match="uq_articles_url_hash"):
+    with pytest.raises(sqlalchemy.exc.IntegrityError, match="articles_url_hash_key"):
         await db_session.flush()

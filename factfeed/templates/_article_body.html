@@ -1,0 +1,21 @@
+{% if sentences %} {% for sentence in sentences %} {% set conf_label = "High" if
+sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if
+sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
+<span
+    class="sentence {{ sentence.label or 'unclear' }}"
+    title="{{ _(conf_label) }} {{ _('confidence') }}"
+    >{{ sentence.text }}
+</span>
+{% endfor %} {% else %}
+<div class="no-classification">
+    <p>{{ article.body or _('No content available.') }}</p>
+    {% if not article.sentences %}
+    <p
+        class="note"
+        style="margin-top: 1rem; color: var(--text-muted); font-style: italic"
+    >
+        {{ _('Classification pending.') }}
+    </p>
+    {% endif %}
+</div>
+{% endif %}
