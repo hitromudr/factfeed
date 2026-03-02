@@ -14,15 +14,17 @@
     the source blocking access (paywall or anti-bot). Try the "Force Sync"
     button below or read the original.') }}
 </div>
-{% endif %} {% for sentence in sentences %} {% set conf_pct =
-((sentence.confidence * 100) | round | int) if sentence.confidence is not none
-else 0 %}
+{% endif %} {% for sentence in sentences %} {% set txt_lower = sentence.text |
+lower %} {% if not ('продолжить чтение' in txt_lower or 'continue reading' in
+txt_lower or 'read more' in txt_lower or 'читать далее' in txt_lower) %} {% set
+conf_pct = ((sentence.confidence * 100) | round | int) if sentence.confidence is
+not none else 0 %}
 <span
     class="sentence {{ sentence.label or 'unclear' }}"
     title="{{ _('Confidence:') }} {{ conf_pct }}%"
     >{{ sentence.text | safe }}
 </span>
-{% endfor %} {% else %}
+{% endif %} {% endfor %} {% else %}
 <div class="no-classification">
     <div class="article-raw-content">
         {{ (article.body or _('No content available.')) | safe }}
