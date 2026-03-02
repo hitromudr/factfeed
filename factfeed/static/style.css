@@ -402,6 +402,10 @@ header {
     text-decoration: none;
     border-radius: 4px;
     transition: all 0.2s;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-sans);
 }
 
 .sort-btn:hover {
@@ -410,7 +414,7 @@ header {
 }
 
 .sort-btn.active {
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     color: #ffffff;
 }
 
