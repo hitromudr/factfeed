@@ -205,6 +205,27 @@ header {
     align-items: center;
 }
 
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 24px;
+    height: 18px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 10;
+}
+
+.hamburger span {
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+}
+
 .nav-links a {
     color: var(--text-muted);
     text-decoration: none;
@@ -838,4 +859,99 @@ footer a {
 }
 .htmx-request .htmx-indicator {
     display: block;
+}
+
+/* --- Mobile Breakpoints --- */
+
+@media (max-width: 768px) {
+    header {
+        flex-wrap: wrap;
+        padding: 1rem;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        position: absolute;
+        top: 60px;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        margin: 0 1rem;
+        width: auto;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .sort-toggle {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sort-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-bar button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .article-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .chart-section,
+    .map-section {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+
+    /* Force plotly charts to respect container width */
+    .js-plotly-plot, .plot-container {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .article-card h2 {
+        font-size: 1.1rem;
+    }
+
+    .snippet {
+        font-size: 0.9rem;
+    }
+
+    .article-meta {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
 }

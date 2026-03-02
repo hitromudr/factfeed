@@ -32,7 +32,16 @@
     <body>
         <header>
             <a href="/" class="logo">{{ _('FactFeed') }}</a>
-            <nav class="nav-links">
+            <button
+                class="hamburger"
+                onclick="toggleMenu()"
+                aria-label="Toggle menu"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav class="nav-links" id="nav-links">
                 <a href="/">{{ _('Search') }}</a>
                 <a href="/analytics">{{ _('Analytics') }}</a>
                 <a href="/docs">{{ _('API Docs') }}</a>
@@ -104,6 +113,11 @@
                 const target = current === "dark" ? "light" : "dark";
                 document.documentElement.setAttribute("data-theme", target);
                 localStorage.setItem("theme", target);
+            }
+
+            function toggleMenu() {
+                const nav = document.getElementById("nav-links");
+                nav.classList.toggle("active");
             }
         </script>
     </body>
