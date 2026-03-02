@@ -41,10 +41,18 @@ async def lifespan(app: FastAPI):
     calibrator = None
     if settings.nlp_enabled:
         try:
+            from factfeed.nlp.calibrator import TemperatureScaler
             from factfeed.nlp.classifier import create_classifier
 
             zs_pipeline = create_classifier()
-            log.info("nlp_classifier_loaded", model="deberta-v3-base-zeroshot-v2.0")
+            calibrator = TemperatureScaler(
+                temperature=settings.nlp_calibration_temperature
+            )
+            log.info(
+                "nlp_classifier_loaded",
+                model="deberta-v3-base-zeroshot-v2.0",
+                temperature=settings.nlp_calibration_temperature,
+            )
         except Exception:
             log.warning("nlp_classifier_unavailable", exc_info=True)
 

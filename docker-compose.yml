@@ -49,7 +49,8 @@ services:
         "0.0.0.0",
         "--port",
         "8002",
-        "--reload",
+        "--workers",
+        "1",
       ]
     volumes:
       - ./factfeed:/app/factfeed

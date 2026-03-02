@@ -8,7 +8,7 @@ the sigmoid, pulling extreme probabilities toward 0.5.
 Default temperature=1.0 means no scaling (passthrough).
 """
 
-import numpy as np
+import math
 
 
 class TemperatureScaler:
@@ -50,6 +50,10 @@ class TemperatureScaler:
 
     def _calibrate_with_T(self, raw_score: float, T: float) -> float:
         """Apply temperature scaling with explicit temperature value."""
-        logit = np.log(raw_score / (1 - raw_score + 1e-8))
+        # Clip to avoid log(0)
+        epsilon = 1e-9
+        p = max(min(raw_score, 1 - epsilon), epsilon)
+
+        logit = math.log(p / (1 - p))
         scaled = logit / T
-        return float(1 / (1 + np.exp(-scaled)))
+        return 1.0 / (1.0 + math.exp(-scaled))

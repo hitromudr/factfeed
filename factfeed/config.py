@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # NLP classification settings
     nlp_enabled: bool = True  # Set to False to disable classification in dev/test
     nlp_batch_size: int = 10
+    nlp_calibration_temperature: float = 2.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

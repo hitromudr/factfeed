@@ -7,18 +7,18 @@ Includes:
 """
 
 import json
-import pytest
 from pathlib import Path
 
-from factfeed.nlp.pipeline import SentenceResult, classify_article
+import pytest
 
+from factfeed.nlp.pipeline import SentenceResult, classify_article
 
 # ---------------------------------------------------------------------------
 # Test helpers
 # ---------------------------------------------------------------------------
 
 
-def _mock_pipeline(label="factual statement", score=0.85):
+def _mock_pipeline(label="news", score=0.85):
     """Create a mock zero-shot pipeline returning predictable results."""
 
     def fn(text, labels, **kwargs):
@@ -86,7 +86,7 @@ def test_pipeline_all_labels_possible():
     )
 
     # Use fact mock for the normal sentence
-    fact_mock = _mock_pipeline("factual statement", 0.85)
+    fact_mock = _mock_pipeline("news", 0.85)
     results = classify_article(body, fact_mock)
 
     # Should have mixed (attributed) and unclear (short) and fact (normal)
@@ -96,7 +96,7 @@ def test_pipeline_all_labels_possible():
     assert "fact" in labels
 
     # Now also create an opinion result
-    opinion_mock = _mock_pipeline("opinion or commentary", 0.85)
+    opinion_mock = _mock_pipeline("opinion", 0.85)
     opinion_body = (
         "The proposed policy is a dangerous and irresponsible gamble with the "
         "nation's economic future that will inevitably burden ordinary taxpayers "
@@ -158,10 +158,9 @@ def test_evaluation_set_accuracy():
     This test downloads and loads the real DeBERTa model. It is slow (~2-5 min)
     and should only be run explicitly with: pytest -m slow
     """
-    from tests.nlp.eval_dataset import EVAL_SENTENCES
-
     from factfeed.nlp.classifier import create_classifier
     from factfeed.nlp.pipeline import classify_article
+    from tests.nlp.eval_dataset import EVAL_SENTENCES
 
     zs_pipeline = create_classifier()
 
@@ -207,9 +206,9 @@ def test_evaluation_set_accuracy():
     overall_accuracy = correct / total if total > 0 else 0
 
     # Print diagnostic breakdown
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"ACCURACY REPORT: {correct}/{total} = {overall_accuracy:.1%}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print("\nPer category:")
     for cat, stats in sorted(per_category.items()):
         cat_acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
@@ -218,7 +217,7 @@ def test_evaluation_set_accuracy():
     for lbl, stats in sorted(per_label.items()):
         lbl_acc = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
         print(f"  {lbl:12s}: {stats['correct']}/{stats['total']} = {lbl_acc:.1%}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Save machine-readable JSON report artifact
     report = {
@@ -231,7 +230,9 @@ def test_evaluation_set_accuracy():
             cat: {
                 "correct": stats["correct"],
                 "total": stats["total"],
-                "accuracy": round(stats["correct"] / stats["total"], 4) if stats["total"] > 0 else 0.0,
+                "accuracy": round(stats["correct"] / stats["total"], 4)
+                if stats["total"] > 0
+                else 0.0,
             }
             for cat, stats in sorted(per_category.items())
         },
@@ -239,12 +240,16 @@ def test_evaluation_set_accuracy():
             lbl: {
                 "correct": stats["correct"],
                 "total": stats["total"],
-                "accuracy": round(stats["correct"] / stats["total"], 4) if stats["total"] > 0 else 0.0,
+                "accuracy": round(stats["correct"] / stats["total"], 4)
+                if stats["total"] > 0
+                else 0.0,
             }
             for lbl, stats in sorted(per_label.items())
         },
     }
-    report_path = Path(__file__).resolve().parents[2] / "reports" / "accuracy_report.json"
+    report_path = (
+        Path(__file__).resolve().parents[2] / "reports" / "accuracy_report.json"
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2))
     print(f"Accuracy report saved to: {report_path}")

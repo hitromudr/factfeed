@@ -7,6 +7,39 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
+# Helper to mock DB objects and session behavior
+class MockSessionFactory:
+    def __init__(self, sources, article_existence_results=None):
+        self.sources = sources
+        self.article_existence_results = article_existence_results or []
+        # Add dummy value for the initial select(Source) query which consumes one iterator item
+        self._iter = iter([None] + self.article_existence_results)
+
+    @asynccontextmanager
+    async def __call__(self):
+        session = AsyncMock()
+
+        async def execute_side_effect(stmt):
+            result = MagicMock()
+
+            # Mock scalars().all() which is used by select(Source)
+            result.scalars.return_value.all.return_value = self.sources
+
+            # Mock scalar_one_or_none() which is used by the article existence check
+            # logic in runner: result = await session.execute(select(Article.is_partial)...)
+            try:
+                val = next(self._iter)
+            except StopIteration:
+                val = None  # Default to None (Article not found) if we run out of mocked values
+
+            result.scalar_one_or_none.return_value = val
+
+            return result
+
+        session.execute.side_effect = execute_side_effect
+        yield session
+
+
 def _make_feed_entry(url: str, title: str = "Test Article", summary: str = "Summary"):
     """Create a mock feedparser entry."""
     return {
@@ -36,44 +69,36 @@ def _make_source(name: str, feed_url: str, source_id: int = 1):
     return source
 
 
-def _mock_session_factory(sources: list):
-    """Create a mock async session factory that returns sources on query."""
-    @asynccontextmanager
-    async def factory():
-        session = AsyncMock()
-        result_mock = MagicMock()
-        scalars_mock = MagicMock()
-        scalars_mock.all.return_value = sources
-        result_mock.scalars.return_value = scalars_mock
-        session.execute.return_value = result_mock
-        yield session
-    return factory
-
-
 @pytest.mark.asyncio
 @patch("factfeed.ingestion.runner.asyncio.sleep", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_rss_feed", new_callable=AsyncMock)
-@patch("factfeed.ingestion.runner.article_exists", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.can_fetch", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_article_page", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.extract_article")
-@patch("factfeed.ingestion.runner.save_article", new_callable=AsyncMock, create=True)
 async def test_run_ingestion_cycle_processes_entries(
-    mock_save, mock_extract, mock_fetch_page, mock_can_fetch,
-    mock_article_exists, mock_fetch_rss, mock_sleep,
+    mock_extract,
+    mock_fetch_page,
+    mock_can_fetch,
+    mock_fetch_rss,
+    mock_sleep,
 ):
     """Full cycle: 2 entries from 1 source, both new, both saved."""
     from factfeed.ingestion.runner import run_ingestion_cycle
 
     source = _make_source("Test Source", "https://example.com/rss", 1)
-    session_factory = _mock_session_factory([source])
 
-    feed = _make_feed([
-        _make_feed_entry("https://example.com/1", "Article 1"),
-        _make_feed_entry("https://example.com/2", "Article 2"),
-    ])
+    # Both articles are new (None returned by existence check)
+    session_factory = MockSessionFactory(
+        [source], article_existence_results=[None, None]
+    )
+
+    feed = _make_feed(
+        [
+            _make_feed_entry("https://example.com/1", "Article 1"),
+            _make_feed_entry("https://example.com/2", "Article 2"),
+        ]
+    )
     mock_fetch_rss.return_value = feed
-    mock_article_exists.return_value = False
     mock_can_fetch.return_value = True
     mock_fetch_page.return_value = b"<html>Content</html>"
     mock_extract.return_value = {
@@ -86,7 +111,9 @@ async def test_run_ingestion_cycle_processes_entries(
     }
 
     # Mock save_article via persister import inside runner
-    with patch("factfeed.ingestion.persister.save_article", new_callable=AsyncMock) as patched_save:
+    with patch(
+        "factfeed.ingestion.persister.save_article", new_callable=AsyncMock
+    ) as patched_save:
         patched_save.return_value = True
         result = await run_ingestion_cycle(session_factory, AsyncMock())
 
@@ -98,28 +125,41 @@ async def test_run_ingestion_cycle_processes_entries(
 @pytest.mark.asyncio
 @patch("factfeed.ingestion.runner.asyncio.sleep", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_rss_feed", new_callable=AsyncMock)
-@patch("factfeed.ingestion.runner.article_exists", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.can_fetch", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_article_page", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.extract_article")
 async def test_run_ingestion_cycle_skips_duplicates(
-    mock_extract, mock_fetch_page, mock_can_fetch,
-    mock_article_exists, mock_fetch_rss, mock_sleep,
+    mock_extract,
+    mock_fetch_page,
+    mock_can_fetch,
+    mock_fetch_rss,
+    mock_sleep,
 ):
-    """First entry is a duplicate (article_exists=True), second is new."""
+    """First entry is a duplicate (False returned: full exists), second is new (None)."""
     from factfeed.ingestion.runner import run_ingestion_cycle
 
     source = _make_source("Test Source", "https://example.com/rss", 1)
-    session_factory = _mock_session_factory([source])
 
-    feed = _make_feed([
-        _make_feed_entry("https://example.com/old", "Old Article"),
-        _make_feed_entry("https://example.com/new", "New Article"),
-    ])
+    # 1. False = Full article exists (skip)
+    # 2. None = New article (process)
+    # logic in runner:
+    #   existing_partial = result.scalar_one_or_none()
+    #   if existing_partial is False: skip
+    #   elif existing_partial is True: retry (update)
+    #   else (None): process new
+
+    session_factory = MockSessionFactory(
+        [source], article_existence_results=[False, None]
+    )
+
+    feed = _make_feed(
+        [
+            _make_feed_entry("https://example.com/old", "Old Article"),
+            _make_feed_entry("https://example.com/new", "New Article"),
+        ]
+    )
     mock_fetch_rss.return_value = feed
 
-    # First call returns True (duplicate), second returns False (new)
-    mock_article_exists.side_effect = [True, False]
     mock_can_fetch.return_value = True
     mock_fetch_page.return_value = b"<html>Content</html>"
     mock_extract.return_value = {
@@ -131,7 +171,9 @@ async def test_run_ingestion_cycle_skips_duplicates(
         "is_partial": False,
     }
 
-    with patch("factfeed.ingestion.persister.save_article", new_callable=AsyncMock) as patched_save:
+    with patch(
+        "factfeed.ingestion.persister.save_article", new_callable=AsyncMock
+    ) as patched_save:
         patched_save.return_value = True
         result = await run_ingestion_cycle(session_factory, AsyncMock())
 
@@ -143,28 +185,35 @@ async def test_run_ingestion_cycle_skips_duplicates(
 @pytest.mark.asyncio
 @patch("factfeed.ingestion.runner.asyncio.sleep", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_rss_feed", new_callable=AsyncMock)
-@patch("factfeed.ingestion.runner.article_exists", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.can_fetch", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_article_page", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.extract_article")
 async def test_run_ingestion_cycle_continues_after_source_error(
-    mock_extract, mock_fetch_page, mock_can_fetch,
-    mock_article_exists, mock_fetch_rss, mock_sleep,
+    mock_extract,
+    mock_fetch_page,
+    mock_can_fetch,
+    mock_fetch_rss,
+    mock_sleep,
 ):
     """First source raises exception, second source still processed."""
     from factfeed.ingestion.runner import run_ingestion_cycle
 
     source1 = _make_source("Bad Source", "https://bad.com/rss", 1)
     source2 = _make_source("Good Source", "https://good.com/rss", 2)
-    session_factory = _mock_session_factory([source1, source2])
 
-    feed = _make_feed([
-        _make_feed_entry("https://good.com/article", "Good Article"),
-    ])
+    # existence check for the successful source's article
+    session_factory = MockSessionFactory(
+        [source1, source2], article_existence_results=[None]
+    )
+
+    feed = _make_feed(
+        [
+            _make_feed_entry("https://good.com/article", "Good Article"),
+        ]
+    )
 
     # First source raises, second returns valid feed
     mock_fetch_rss.side_effect = [Exception("Network error"), feed]
-    mock_article_exists.return_value = False
     mock_can_fetch.return_value = True
     mock_fetch_page.return_value = b"<html>Content</html>"
     mock_extract.return_value = {
@@ -176,7 +225,9 @@ async def test_run_ingestion_cycle_continues_after_source_error(
         "is_partial": False,
     }
 
-    with patch("factfeed.ingestion.persister.save_article", new_callable=AsyncMock) as patched_save:
+    with patch(
+        "factfeed.ingestion.persister.save_article", new_callable=AsyncMock
+    ) as patched_save:
         patched_save.return_value = True
         result = await run_ingestion_cycle(session_factory, AsyncMock())
 
@@ -188,28 +239,34 @@ async def test_run_ingestion_cycle_continues_after_source_error(
 @pytest.mark.asyncio
 @patch("factfeed.ingestion.runner.asyncio.sleep", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_rss_feed", new_callable=AsyncMock)
-@patch("factfeed.ingestion.runner.article_exists", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.can_fetch", new_callable=AsyncMock)
 @patch("factfeed.ingestion.runner.fetch_article_page", new_callable=AsyncMock)
 async def test_run_ingestion_cycle_handles_partial_extraction(
-    mock_fetch_page, mock_can_fetch,
-    mock_article_exists, mock_fetch_rss, mock_sleep,
+    mock_fetch_page,
+    mock_can_fetch,
+    mock_fetch_rss,
+    mock_sleep,
 ):
     """When fetch_article_page returns None, article is saved with is_partial=True."""
     from factfeed.ingestion.runner import run_ingestion_cycle
 
     source = _make_source("Test Source", "https://example.com/rss", 1)
-    session_factory = _mock_session_factory([source])
+    session_factory = MockSessionFactory([source], article_existence_results=[None])
 
-    feed = _make_feed([
-        _make_feed_entry("https://example.com/1", "Article 1", summary="RSS summary"),
-    ])
+    feed = _make_feed(
+        [
+            _make_feed_entry(
+                "https://example.com/1", "Article 1", summary="RSS summary"
+            ),
+        ]
+    )
     mock_fetch_rss.return_value = feed
-    mock_article_exists.return_value = False
     mock_can_fetch.return_value = True
     mock_fetch_page.return_value = None  # Failed to fetch page
 
-    with patch("factfeed.ingestion.persister.save_article", new_callable=AsyncMock) as patched_save:
+    with patch(
+        "factfeed.ingestion.persister.save_article", new_callable=AsyncMock
+    ) as patched_save:
         patched_save.return_value = True
         result = await run_ingestion_cycle(session_factory, AsyncMock())
 

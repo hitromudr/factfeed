@@ -4,10 +4,11 @@ Rate limit: 30 requests/minute per IP.
 Search routes (/ and /search) are limited; article detail is not.
 """
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from unittest.mock import AsyncMock, MagicMock
 
 
 def _make_mock_db():
@@ -32,8 +33,8 @@ async def rate_limit_client():
     required for rate-limit tests.
     """
     from factfeed.web.deps import get_db
-    from factfeed.web.main import app
     from factfeed.web.limiter import limiter
+    from factfeed.web.main import app
 
     # Reset in-memory rate limit counters before each test
     limiter._limiter.storage.reset()
@@ -55,7 +56,9 @@ async def test_search_under_rate_limit(rate_limit_client):
     """5 requests to /search should all return 200 (well under 30/minute limit)."""
     for i in range(5):
         resp = await rate_limit_client.get("/search", params={"q": "test"})
-        assert resp.status_code == 200, f"Request {i + 1} failed with {resp.status_code}"
+        assert resp.status_code == 200, (
+            f"Request {i + 1} failed with {resp.status_code}"
+        )
 
 
 @pytest.mark.asyncio
@@ -64,7 +67,9 @@ async def test_search_rate_limit_429(rate_limit_client):
     # Send 30 requests that should all succeed
     for i in range(30):
         resp = await rate_limit_client.get("/search", params={"q": "test"})
-        assert resp.status_code == 200, f"Request {i + 1} unexpectedly failed with {resp.status_code}"
+        assert resp.status_code == 200, (
+            f"Request {i + 1} unexpectedly failed with {resp.status_code}"
+        )
 
     # The 31st request should be rate limited
     resp = await rate_limit_client.get("/search", params={"q": "test"})
@@ -79,12 +84,16 @@ async def test_article_detail_not_rate_limited(rate_limit_client):
 
     Uses article ID 99999 (nonexistent) so we get 404s but never 429.
     """
-    for i in range(35):
-        resp = await rate_limit_client.get("/article/99999")
-        # Must not be 429 — article detail has no rate limit
-        assert resp.status_code != 429, (
-            f"Request {i + 1} to article detail returned unexpected 429"
-        )
+    from unittest.mock import patch
+
+    # Mock background task to prevent DB connection errors in test env
+    with patch("factfeed.web.routes.article._background_ingest_task"):
+        for i in range(35):
+            resp = await rate_limit_client.get("/article/99999")
+            # It might be 404 or 200 depending on DB state, but MUST NOT be 429
+            assert resp.status_code != 429, (
+                f"Request {i + 1} to article detail returned unexpected 429"
+            )
         assert resp.status_code in (200, 404), (
             f"Request {i + 1} returned unexpected status {resp.status_code}"
         )

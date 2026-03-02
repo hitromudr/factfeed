@@ -17,7 +17,7 @@ from factfeed.nlp.pipeline import SentenceResult, classify_article
 # ---------------------------------------------------------------------------
 
 
-def make_mock_pipeline(label="factual statement", score=0.85):
+def make_mock_pipeline(label="news", score=0.85):
     """Create a mock zero-shot pipeline returning predictable results."""
 
     def mock_fn(text, labels, **kwargs):
@@ -37,16 +37,16 @@ def make_mock_pipeline(label="factual statement", score=0.85):
 
 
 def test_classify_sentence_fact():
-    """Mock pipeline returns 'factual statement' -> label='fact'."""
-    mock_pipe = make_mock_pipeline("factual statement", 0.85)
+    """Mock pipeline returns 'news' -> label='fact'."""
+    mock_pipe = make_mock_pipeline("news", 0.85)
     result = classify_sentence("The GDP grew 2.5 percent.", mock_pipe)
     assert result["label"] == "fact"
     assert result["raw_confidence"] == pytest.approx(0.85)
 
 
 def test_classify_sentence_opinion():
-    """Mock pipeline returns 'opinion or commentary' -> label='opinion'."""
-    mock_pipe = make_mock_pipeline("opinion or commentary", 0.9)
+    """Mock pipeline returns 'opinion' -> label='opinion'."""
+    mock_pipe = make_mock_pipeline("opinion", 0.9)
     result = classify_sentence("The policy is a disaster.", mock_pipe)
     assert result["label"] == "opinion"
     assert result["raw_confidence"] == pytest.approx(0.9)
@@ -56,7 +56,7 @@ def test_classify_sentence_uses_correct_template():
     """Pipeline is called with correct hypothesis template and multi_label=False."""
     mock_pipe = MagicMock(
         return_value={
-            "labels": ["factual statement", "opinion or commentary"],
+            "labels": ["news", "opinion"],
             "scores": [0.85, 0.15],
             "sequence": "test",
         }
@@ -157,10 +157,11 @@ def test_classify_article_prefilter_unclear():
     assert len(unclear) >= 1
 
 
-def test_classify_multilingual_sentences(mock_zs_pipeline):
+def test_classify_multilingual_sentences():
     """Test that Spanish and Russian sentences can be classified."""
     from factfeed.nlp.classifier import classify_sentence
 
+    mock_zs_pipeline = make_mock_pipeline()
     spanish_text = "El gobierno anunció nuevas medidas."
     result_es = classify_sentence(spanish_text, mock_zs_pipeline)
     assert result_es["label"] in ["fact", "opinion"]

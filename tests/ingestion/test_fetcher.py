@@ -1,10 +1,11 @@
 """Unit tests for RSS feed fetching and article page fetching with mocked HTTP."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
-from factfeed.ingestion.fetcher import fetch_rss_feed, fetch_article_page
+import pytest
+
+from factfeed.ingestion.fetcher import fetch_article_page, fetch_rss_feed
 
 # Minimal valid RSS XML for feed tests
 SAMPLE_RSS = b"""<?xml version="1.0"?>
@@ -78,11 +79,25 @@ async def test_fetch_rss_feed_http_error_raises():
 @pytest.mark.asyncio
 async def test_fetch_article_page_success():
     """Successful article fetch returns HTML bytes."""
+    from unittest.mock import MagicMock, patch
+
     client = AsyncMock()
     html = b"<html><body>Hello</body></html>"
-    client.get.return_value = _mock_response(html)
 
-    result = await fetch_article_page("https://example.com/article", client)
+    # Mock response
+    mock_resp = MagicMock()
+    mock_resp.content = html
+    mock_resp.raise_for_status.return_value = None
+
+    # Mock AsyncSession
+    mock_session = AsyncMock()
+    mock_session.get.return_value = mock_resp
+    mock_session.__aenter__.return_value = mock_session
+    mock_session.__aexit__.return_value = None
+
+    with patch("factfeed.ingestion.fetcher.AsyncSession", return_value=mock_session):
+        result = await fetch_article_page("https://example.com/article", client)
+
     assert result == html
 
 
