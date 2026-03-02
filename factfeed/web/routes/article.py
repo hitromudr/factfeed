@@ -33,10 +33,40 @@ def _confidence_label(confidence: float | None) -> str:
     return "Low"
 
 
-async def _background_ingest_task(article_id: int):
+async def _background_ingest_task(article_id: int, zs_pipeline=None, calibrator=None):
     """Background task to attempt fetching full content for partial articles."""
     async with AsyncSessionLocal() as session:
-        await ingest_article_on_demand(session, article_id)
+        if await ingest_article_on_demand(session, article_id):
+            # If ingestion succeeded and we have the classifier, classify immediately
+            if zs_pipeline:
+                # Re-fetch article with source to run classification
+                stmt = (
+                    select(Article)
+                    .options(selectinload(Article.source))
+                    .where(Article.id == article_id)
+                )
+                result = await session.execute(stmt)
+                article = result.scalar_one_or_none()
+
+                if article and article.body:
+                    try:
+                        from factfeed.nlp.persist import persist_sentences
+                        from factfeed.nlp.pipeline import classify_article_async
+
+                        source_name = article.source.name if article.source else ""
+                        results = await classify_article_async(
+                            article.body, zs_pipeline, calibrator, source_name
+                        )
+                        await persist_sentences(article.id, results, session)
+                    except Exception:
+                        import structlog
+
+                        log = structlog.get_logger()
+                        log.error(
+                            "background_classification_failed",
+                            article_id=article_id,
+                            exc_info=True,
+                        )
 
 
 @router.get("/article/{article_id}", response_class=HTMLResponse)
@@ -62,7 +92,12 @@ async def article_detail(
 
     # If article is partial (only RSS summary), trigger full fetch in background
     if article.is_partial:
-        background_tasks.add_task(_background_ingest_task, article.id)
+        background_tasks.add_task(
+            _background_ingest_task,
+            article.id,
+            getattr(request.app.state, "zs_pipeline", None),
+            getattr(request.app.state, "calibrator", None),
+        )
 
     # Find other providers covering the same story
     similar_stmt = (

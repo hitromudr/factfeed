@@ -49,10 +49,10 @@ async def fetch_article_page(url: str, client: httpx.AsyncClient) -> bytes | Non
     # Proxies available via host networking
     proxies_list = [
         None,  # Direct first
-        "http://127.0.0.1:3129",  # Riga
-        "http://127.0.0.1:4129",  # Polka
-        "http://127.0.0.1:5129",  # Turka
-        "http://127.0.0.1:6129",  # Nitro
+        "http://riga:fgh4677jhrtjh67EG@127.0.0.1:3129",  # Riga
+        "http://polka:fgh4677jhrtjh67EG@127.0.0.1:4129",  # Polka
+        "http://turka:fgh4677jhrtjh67EG@127.0.0.1:5129",  # Turka
+        "http://hitro:fgh4677jhrtjh67EG@127.0.0.1:6129",  # Hitro
     ]
 
     # Headers mimicking real Chrome

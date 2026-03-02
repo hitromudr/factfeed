@@ -56,6 +56,9 @@ async def lifespan(app: FastAPI):
         except Exception:
             log.warning("nlp_classifier_unavailable", exc_info=True)
 
+    app.state.zs_pipeline = zs_pipeline
+    app.state.calibrator = calibrator
+
     # Create shared HTTP client
     async with httpx.AsyncClient(
         headers={"User-Agent": settings.user_agent},

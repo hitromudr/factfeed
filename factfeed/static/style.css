@@ -955,3 +955,139 @@ footer a {
         gap: 0.5rem;
     }
 }
+
+/* --- Refactoring UI v2.0 (Dashboard Style) --- */
+
+.article-card {
+    padding: 1.5rem;
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-left-color: var(--border-color); /* Default fallback */
+}
+
+/* Dashboard Indicators */
+.article-card.fact { border-left-color: var(--color-fact); }
+.article-card.opinion { border-left-color: var(--color-opinion); }
+.article-card.mixed { border-left-color: var(--color-mixed); }
+.article-card.pending { border-left-color: var(--text-muted); }
+
+.article-title {
+    margin: 0 0 1rem 0;
+    line-height: 1.4;
+}
+
+.article-title a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: 1.25rem;
+    transition: color 0.2s;
+}
+
+.article-title a:hover {
+    color: var(--primary-color);
+}
+
+.article-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.source-list {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.source-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: var(--bg-body); /* Contrast chip against card */
+    border: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.source-chip:hover {
+    border-color: var(--text-muted);
+    transform: translateY(-1px);
+}
+
+.source-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+}
+
+.source-chip.fact .dot { background-color: var(--color-fact); }
+.source-chip.opinion .dot { background-color: var(--color-opinion); }
+.source-chip.mixed .dot { background-color: var(--color-mixed); }
+
+.source-chip .label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    opacity: 0.9;
+}
+
+.source-chip.fact .label { color: var(--color-fact); }
+.source-chip.opinion .label { color: var(--color-opinion); }
+.source-chip.mixed .label { color: var(--color-mixed); }
+
+.article-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.article-snippet {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.7; /* Better readability */
+    color: var(--text-body);
+    margin: 0;
+}
+
+.no-results {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--text-muted);
+}
+
+.no-results .hint {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+/* Dark Mode Link Contrast Fix */
+:root[data-theme="dark"] a {
+    color: #60a5fa; /* Tailwind Blue 400 */
+}
+
+/* Reset specific links that shouldn't be blue */
+:root[data-theme="dark"] .article-title a,
+:root[data-theme="dark"] .nav-links a,
+:root[data-theme="dark"] .logo,
+:root[data-theme="dark"] .source-chip {
+    color: var(--text-main);
+}
+:root[data-theme="dark"] .article-title a:hover {
+    color: var(--primary-color);
+}
+
