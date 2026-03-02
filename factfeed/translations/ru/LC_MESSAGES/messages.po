@@ -337,5 +337,8 @@ msgstr "Система готова"
 msgid "Live Pipeline"
 msgstr "Сбор данных..."
 
+msgid "This article is very short. We likely only fetched the summary due to the source blocking access (paywall or anti-bot). Try the \"Force Sync\" button below or read the original."
+msgstr "Эта статья очень короткая. Скорее всего, мы смогли получить только краткое содержание из-за блокировок источника (пейволл или защита от ботов). Попробуйте нажать кнопку «Принудительно обновить» ниже или прочитайте оригинал."
+
 #~ msgid "sentences"
 #~ msgstr "предложений"

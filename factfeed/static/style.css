@@ -63,6 +63,11 @@ main {
     padding: 2rem 1rem;
 }
 
+/* Ensure padding on header doesn't cause overlap when scrolled */
+html {
+    scroll-padding-top: 80px;
+}
+
 /* --- Header & Navigation --- */
 header {
     background-color: var(--bg-card);
@@ -74,6 +79,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .logo {
@@ -642,6 +648,7 @@ header {
     padding: 3rem;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
+    margin-top: 1rem;
     margin-bottom: 2rem;
 }
 
@@ -697,6 +704,28 @@ header {
 
 .article-body p {
     margin-bottom: 1.5rem;
+}
+
+.article-body a {
+    color: var(--text-main);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--primary-color);
+    text-underline-offset: 4px;
+    transition: color 0.2s;
+}
+
+.article-body a:hover {
+    color: var(--primary-color);
+}
+
+.article-body a::after {
+    content: " ↗";
+    font-family: var(--font-sans);
+    font-size: 0.7em;
+    opacity: 0.7;
+    text-decoration: none;
+    display: inline-block;
 }
 
 /* Footer & Buttons */
