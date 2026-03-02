@@ -7,7 +7,7 @@
 - ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
 - ✅ **v1.3 Redesign & Translation** — Phases 8-9 (shipped 2026-03-01)
 - ✅ **v1.4 Global Coverage** — Phase 10 (shipped 2026-03-01)
-- 📅 **v2.0 Analytics & Optimization** — Phases 11-12 (planned)
+- ✅ **v2.0 Analytics & Optimization** — Phases 11-14 (shipped)
 
 ## Phases
 
@@ -86,9 +86,28 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] Plan 12.1: Confidence Calibration (Enable TemperatureScaler)
-- [ ] Plan 12.2: Mobile UX Improvements (CSS Breakpoints)
-- [ ] Plan 12.3: Docker Optimization (Reduce image size, improve caching)
+- [x] Plan 12.1: Confidence Calibration (Enable TemperatureScaler)
+- [x] Plan 12.2: Mobile UX Improvements (CSS Breakpoints)
+- [x] Plan 12.3: Docker Optimization (Reduce image size, improve caching)
+
+### Phase 13: Live System Status
+
+**Goal:** Add real-time monitoring widget to UI
+**Depends on:** Phase 12
+**Plans:** 1 plan
+
+Plans:
+- [x] Plan 13.1: Implement System Monitor and HTMX status widget
+
+### Phase 14: Interactive Analytics & Deep Dive
+
+**Goal:** Turn static charts into interactive exploration tools
+**Depends on:** Phase 13
+**Plans:** 2 plans
+
+Plans:
+- [x] Plan 14.1: Implement click-through drilldown for Plotly charts
+- [x] Plan 14.2: Implement database caching for sentence-level translations
 
 ## Progress
 
@@ -105,4 +124,6 @@ Plans:
 | 9. Content Translation | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
 | 11. Analytics & Visualization | v2.0 | 2/2 | Complete | 2026-03-02 |
-| 12. Tech Debt & Optimization | v2.0 | 0/3 | Active | - |
+| 12. Tech Debt & Optimization | v2.0 | 3/3 | Complete | 2026-03-02 |
+| 13. Live System Status | v2.0 | 1/1 | Complete | 2026-03-02 |
+| 14. Interactive Analytics | v2.0 | 2/2 | Complete | 2026-03-02 |
