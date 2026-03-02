@@ -1,9 +1,9 @@
-{% if sentences %} {% for sentence in sentences %} {% set conf_label = "High" if
-sentence.confidence is not none and sentence.confidence >= 0.7 else ("Medium" if
-sentence.confidence is not none and sentence.confidence >= 0.4 else "Low") %}
+{% if sentences %} {% for sentence in sentences %} {% set conf_pct =
+((sentence.confidence * 100) | round | int) if sentence.confidence is not none
+else 0 %}
 <span
     class="sentence {{ sentence.label or 'unclear' }}"
-    title="{{ _(conf_label) }} {{ _('confidence') }}"
+    title="{{ _('Confidence:') }} {{ conf_pct }}%"
     >{{ sentence.text | safe }}
 </span>
 {% endfor %} {% else %}

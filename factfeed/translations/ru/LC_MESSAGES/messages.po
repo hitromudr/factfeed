@@ -316,5 +316,26 @@ msgstr "Самые новые"
 #~ msgid "Read full translated article"
 #~ msgstr "Читать полный перевод статьи"
 
+msgid "Confidence:"
+msgstr "Уверенность:"
+
+msgid "Force Sync"
+msgstr "Принудительно обновить"
+
+msgid "Articles Queued"
+msgstr "В очереди на сбор"
+
+msgid "Articles Saved"
+msgstr "Сохранено в базу"
+
+msgid "Classified"
+msgstr "Классифицировано"
+
+msgid "System Ready"
+msgstr "Система готова"
+
+msgid "Live Pipeline"
+msgstr "Сбор данных..."
+
 #~ msgid "sentences"
 #~ msgstr "предложений"
