@@ -264,8 +264,43 @@ async def sync_article(
     article_id: int,
     db: AsyncSession = Depends(get_db),
 ):
-    """Force sync article content from source."""
-    await ingest_article_on_demand(db, article_id)
+    """Force sync article content from source and re-classify immediately."""
+    # Force bypass the 'already full' check
+    success = await ingest_article_on_demand(db, article_id, force=True)
+
+    # Run classification synchronously so the user sees results immediately upon reload
+    zs_pipeline = getattr(request.app.state, "zs_pipeline", None)
+    calibrator = getattr(request.app.state, "calibrator", None)
+
+    if success and zs_pipeline:
+        stmt = (
+            select(Article)
+            .options(selectinload(Article.source))
+            .where(Article.id == article_id)
+        )
+        article = (await db.execute(stmt)).scalar_one()
+
+        if article.body:
+            from factfeed.nlp.persist import persist_sentences
+            from factfeed.nlp.pipeline import classify_article_async
+
+            source_name = article.source.name if article.source else ""
+            results = await classify_article_async(
+                article.body, zs_pipeline, calibrator, source_name
+            )
+            await persist_sentences(article.id, results, db)
+
+            # Clear sentence translation cache to force re-translation
+            from sqlalchemy import update
+
+            from factfeed.db.models import Translation
+
+            await db.execute(
+                update(Translation)
+                .where(Translation.article_id == article.id)
+                .values(sentences_data=None)
+            )
+            await db.commit()
 
     # Redirect back to the article page to refresh content.
     # Using referer to preserve query params like 'lang'.

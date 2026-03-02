@@ -36,9 +36,9 @@ _ATTRIBUTION_PHRASES_RE = re.compile(
     r"(?i)\b(?:according to|told reporters|sources said|sources say|officials said|officials say|a spokesperson said|in a statement)\b"
 )
 
-# Attribution verbs regex (simplified to subject + past tense verb)
+# Attribution verbs regex (allows up to 2 adverbs/words between subject and verb)
 _ATTRIBUTION_VERBS_RE = re.compile(
-    r"\b(?:[Hh]e|[Ss]he|[Tt]hey|[Ww]ho|[Ss]ources?|[Oo]fficials?|[Ee]xperts?|[Pp]olice|[Aa]uthorities|[Ss]pokesperson|[Rr]epresentatives?|[Cc][Ee][Oo]|[Dd]irector|[Mm]inisters?|[Pp]resident|[Gg]overnment|[A-Z][a-z]+)\s+(?:said|claimed|told|stated|announced|reported|alleged|argued|warned|explained|noted|added|confirmed|denied|insisted|suggested|indicated|asserted|contended|maintained|remarked|declared)\b"
+    r"\b(?:[Hh]e|[Ss]he|[Tt]hey|[Ww]ho|[Ss]ources?|[Oo]fficials?|[Ee]xperts?|[Pp]olice|[Aa]uthorities|[Ss]pokesperson|[Rr]epresentatives?|[Cc][Ee][Oo]|[Dd]irector|[Mm]inisters?|[Pp]resident|[Gg]overnment|[A-Z][a-z]+)\s+(?:[a-z]+\s+){0,2}(?:said|claimed|told|stated|announced|reported|alleged|argued|warned|explained|noted|added|confirmed|denied|insisted|suggested|indicated|asserted|contended|maintained|remarked|declared)\b"
 )
 
 # Satire markers

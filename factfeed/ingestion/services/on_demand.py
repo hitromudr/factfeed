@@ -15,7 +15,9 @@ from factfeed.ingestion.fetcher import fetch_article_page
 log = structlog.get_logger()
 
 
-async def ingest_article_on_demand(session: AsyncSession, article_id: int) -> bool:
+async def ingest_article_on_demand(
+    session: AsyncSession, article_id: int, force: bool = False
+) -> bool:
     """
     Attempt to fetch and update content for a specific article immediately.
 
@@ -31,8 +33,8 @@ async def ingest_article_on_demand(session: AsyncSession, article_id: int) -> bo
         log.warning("on_demand_ingest_missing_article", article_id=article_id)
         return False
 
-    # Optimization: if already full, skip
-    if not article.is_partial and article.body:
+    # Optimization: if already full, skip (unless force=True)
+    if not force and not article.is_partial and article.body:
         return True
 
     log.info("starting_on_demand_ingest", article_id=article_id, url=article.url)
