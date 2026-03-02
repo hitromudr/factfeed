@@ -34,39 +34,57 @@ def _confidence_label(confidence: float | None) -> str:
 
 
 async def _background_ingest_task(article_id: int, zs_pipeline=None, calibrator=None):
-    """Background task to attempt fetching full content for partial articles."""
+    """Background task to attempt fetching full content or classify if unclassified."""
+    from sqlalchemy import func
+
+    from factfeed.db.models import Sentence
+
     async with AsyncSessionLocal() as session:
-        if await ingest_article_on_demand(session, article_id):
-            # If ingestion succeeded and we have the classifier, classify immediately
-            if zs_pipeline:
-                # Re-fetch article with source to run classification
-                stmt = (
-                    select(Article)
-                    .options(selectinload(Article.source))
-                    .where(Article.id == article_id)
+        # Fetch article first
+        stmt = (
+            select(Article)
+            .options(selectinload(Article.source))
+            .where(Article.id == article_id)
+        )
+        result = await session.execute(stmt)
+        article = result.scalar_one_or_none()
+
+        if not article:
+            return
+
+        # Attempt to ingest full content if partial
+        if article.is_partial:
+            success = await ingest_article_on_demand(session, article_id)
+            if not success:
+                return  # If fetch failed, we still have no body, can't classify
+            await session.refresh(article)
+
+        # Check if sentences exist
+        stmt_sents = select(func.count(Sentence.id)).where(
+            Sentence.article_id == article.id
+        )
+        has_sents = (await session.execute(stmt_sents)).scalar() > 0
+
+        # Classify immediately if we have a body but no sentences
+        if not has_sents and article.body and zs_pipeline:
+            try:
+                from factfeed.nlp.persist import persist_sentences
+                from factfeed.nlp.pipeline import classify_article_async
+
+                source_name = article.source.name if article.source else ""
+                results = await classify_article_async(
+                    article.body, zs_pipeline, calibrator, source_name
                 )
-                result = await session.execute(stmt)
-                article = result.scalar_one_or_none()
+                await persist_sentences(article.id, results, session)
+            except Exception:
+                import structlog
 
-                if article and article.body:
-                    try:
-                        from factfeed.nlp.persist import persist_sentences
-                        from factfeed.nlp.pipeline import classify_article_async
-
-                        source_name = article.source.name if article.source else ""
-                        results = await classify_article_async(
-                            article.body, zs_pipeline, calibrator, source_name
-                        )
-                        await persist_sentences(article.id, results, session)
-                    except Exception:
-                        import structlog
-
-                        log = structlog.get_logger()
-                        log.error(
-                            "background_classification_failed",
-                            article_id=article_id,
-                            exc_info=True,
-                        )
+                log = structlog.get_logger()
+                log.error(
+                    "background_classification_failed",
+                    article_id=article_id,
+                    exc_info=True,
+                )
 
 
 @router.get("/article/{article_id}", response_class=HTMLResponse)
@@ -90,8 +108,9 @@ async def article_detail(
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    # If article is partial (only RSS summary), trigger full fetch in background
-    if article.is_partial:
+    # If article is partial or lacks sentences, trigger background task
+    needs_processing = article.is_partial or not article.sentences
+    if needs_processing:
         background_tasks.add_task(
             _background_ingest_task,
             article.id,

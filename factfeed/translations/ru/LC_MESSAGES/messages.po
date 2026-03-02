@@ -114,7 +114,7 @@ msgstr "Сохранено"
 
 #: factfeed/templates/_system_monitor.html:40
 msgid "Classified"
-msgstr "Классифицировано"
+msgstr "Классифицировано (сессия)"
 
 #: factfeed/templates/analytics.html:1 factfeed/templates/base.html:46
 msgid "Analytics"

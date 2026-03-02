@@ -9,6 +9,7 @@ import asyncio
 import logging
 
 from deep_translator import GoogleTranslator
+from deep_translator.exceptions import TranslationNotFound
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,7 +25,7 @@ def get_translator_instance(target: str = "ru") -> GoogleTranslator:
 
 
 async def translate_text(text: str, target: str) -> str:
-    """Translate a single text string asynchronously.
+    """Translate a single text string asynchronously with a timeout.
 
     This function does NOT check the database cache; it is a direct wrapper
     around the translation API. Use get_or_create_translation for articles.
@@ -39,11 +40,17 @@ async def translate_text(text: str, target: str) -> str:
     translator = get_translator_instance(target)
     try:
         loop = asyncio.get_running_loop()
-        # deep-translator is synchronous, run in thread pool
-        translated = await loop.run_in_executor(None, translator.translate, text)
+        # deep-translator is synchronous, run in thread pool.
+        # Wrap in wait_for to prevent infinite hanging if the API/proxy stalls.
+        translated = await asyncio.wait_for(
+            loop.run_in_executor(None, translator.translate, text), timeout=5.0
+        )
         return translated or text
-    except Exception:
-        log.warning("translation_failed: text='%s' target='%s'", text[:50], target)
+    except asyncio.TimeoutError:
+        log.warning("translation_timeout: target='%s', text_len=%d", target, len(text))
+        return text
+    except Exception as e:
+        log.warning("translation_failed: error='%s', target='%s'", str(e), target)
         return text
 
 
@@ -98,6 +105,7 @@ async def get_or_create_translation(
     else:
         tasks.append(asyncio.sleep(0, result=""))
 
+    # If translation tasks timeout, they return the original text gracefully.
     results = await asyncio.gather(*tasks)
     translated_title = results[0]
     translated_body = results[1]
