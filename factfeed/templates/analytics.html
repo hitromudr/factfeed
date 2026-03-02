@@ -71,17 +71,19 @@ _('FactFeed') }}{% endblock %} {% block content %}
         const stats = {{ stats_json | safe }};
         const geoStats = {{ geo_stats_json | safe }};
 
-        function getThemeColors() {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-                          (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                      (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
+        function getThemeColors() {
             if (isDark) {
                 return {
                     text: '#94a3b8', // slate-400
                     grid: '#334155', // slate-700
                     tooltipBg: 'rgba(30, 41, 59, 0.95)', // slate-800
                     tooltipText: '#f1f5f9', // slate-100
-                    tooltipBorder: '#475569' // slate-600
+                    tooltipBorder: '#475569', // slate-600
+                    mapFill: '#334155',
+                    mapStroke: '#1e293b'
                 };
             }
             return {
@@ -89,7 +91,9 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 grid: '#e5e7eb', // gray-200
                 tooltipBg: 'rgba(255, 255, 255, 0.95)',
                 tooltipText: '#1f2937', // gray-800
-                tooltipBorder: '#e5e7eb'
+                tooltipBorder: '#e5e7eb',
+                mapFill: '#f3f4f6',
+                mapStroke: '#d1d5db'
             };
         }
 
@@ -240,8 +244,8 @@ _('FactFeed') }}{% endblock %} {% block content %}
             zoomOnScroll: false,
             regionStyle: {
                 initial: {
-                    fill: '#f3f4f6',
-                    stroke: '#d1d5db',
+                    fill: colors.mapFill,
+                    stroke: colors.mapStroke,
                     strokeWidth: 0.5,
                     fillOpacity: 1
                 },
@@ -287,36 +291,36 @@ _('FactFeed') }}{% endblock %} {% block content %}
     h1 {
         font-family: "Merriweather", serif;
         font-size: 2rem;
-        color: #1f2937;
+        color: var(--text-main);
         margin-bottom: 0.5rem;
     }
 
     .subtitle {
-        color: #6b7280;
+        color: var(--text-muted);
         max-width: 600px;
         margin: 0 auto;
     }
 
     .chart-section {
-        background: white;
+        background: var(--bg-card);
         padding: 1.5rem;
         border-radius: 12px;
         box-shadow:
             0 4px 6px -1px rgba(0, 0, 0, 0.05),
             0 2px 4px -1px rgba(0, 0, 0, 0.03);
         margin-bottom: 3rem;
-        border: 1px solid #f3f4f6;
+        border: 1px solid var(--border-color);
     }
 
     .map-section {
-        background: white;
+        background: var(--bg-card);
         padding: 1.5rem;
         border-radius: 12px;
         box-shadow:
             0 4px 6px -1px rgba(0, 0, 0, 0.05),
             0 2px 4px -1px rgba(0, 0, 0, 0.03);
         margin-bottom: 3rem;
-        border: 1px solid #f3f4f6;
+        border: 1px solid var(--border-color);
     }
 
     .map-container {
@@ -326,7 +330,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
 
     .map-section h2 {
         font-size: 1.25rem;
-        color: #374151;
+        color: var(--text-main);
         margin-bottom: 1rem;
     }
 
@@ -338,16 +342,16 @@ _('FactFeed') }}{% endblock %} {% block content %}
 
     .table-section h2 {
         font-size: 1.25rem;
-        color: #374151;
+        color: var(--text-main);
         margin-bottom: 1rem;
     }
 
     .stats-table-container {
         overflow-x: auto;
-        background: white;
+        background: var(--bg-card);
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #f3f4f6;
+        border: 1px solid var(--border-color);
     }
 
     .stats-table {
@@ -361,13 +365,14 @@ _('FactFeed') }}{% endblock %} {% block content %}
     .stats-table td {
         padding: 1rem 1.5rem;
         text-align: left;
-        border-bottom: 1px solid #f3f4f6;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
     }
 
     .stats-table th {
-        background-color: #f9fafb;
+        background-color: var(--bg-body);
         font-weight: 600;
-        color: #4b5563;
+        color: var(--text-muted);
         font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -378,12 +383,12 @@ _('FactFeed') }}{% endblock %} {% block content %}
     }
 
     .stats-table tr:hover td {
-        background-color: #f9fafb;
+        background-color: var(--bg-body);
     }
 
     .source-name {
         font-weight: 500;
-        color: #111827;
+        color: var(--text-main);
     }
 
     .num-col {
