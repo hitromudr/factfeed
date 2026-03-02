@@ -74,13 +74,13 @@ def is_unclear(sent_span: Span, source_name: str = "") -> bool:
     """Detect short, ambiguous, satire, or breaking news sentences.
 
     Returns True if ANY of the following checks pass:
-    - Sentence has fewer than 30 spaCy tokens
+    - Sentence has fewer than 8 spaCy tokens
     - Sentence text contains a satire marker (case-insensitive)
     - Sentence starts with a breaking news pattern (case-insensitive)
     - source_name matches a known satire source
     """
     # Short sentence check (spaCy token count)
-    if len(sent_span) < 30:
+    if len(sent_span) < 8:
         return True
 
     text_lower = sent_span.text.lower()
@@ -104,7 +104,7 @@ def is_unclear(sent_span: Span, source_name: str = "") -> bool:
 
 def _get_unclear_reason(sent_span: Span, source_name: str = "") -> str:
     """Determine the specific reason a sentence is unclear."""
-    if len(sent_span) < 30:
+    if len(sent_span) < 8:
         return "short_sentence"
 
     text_lower = sent_span.text.lower()
