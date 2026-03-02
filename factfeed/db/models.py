@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     Computed,
@@ -107,5 +108,6 @@ class Translation(Base):
     language = Column(String(5), nullable=False)
     title = Column(Text, nullable=True)
     body = Column(Text, nullable=True)
+    sentences_data = Column(JSON, nullable=True)
 
     article = relationship("Article", back_populates="translations")

@@ -186,15 +186,45 @@ async def article_content(
             display_sentences = article.sentences[:4]
             show_read_more = True
 
-        # Ensure title/body translation is cached/fetched (even if using sentences for display)
-        await get_or_create_translation(db, article, locale)
+        # Ensure title/body translation is cached/fetched
+        _, translation_obj = await get_or_create_translation(db, article, locale)
 
-        # Translate the specific sentences we are displaying
-        tasks = [translate_text(s.text, locale) for s in display_sentences]
+        # Load from cache if available
+        cached_sents = {}
+        if translation_obj and translation_obj.sentences_data:
+            cached_sents = translation_obj.sentences_data.copy()
+
+        tasks = []
+        task_indices = []
+
+        for s in display_sentences:
+            idx_str = str(s.position)
+            if idx_str in cached_sents:
+                s.text = cached_sents[idx_str]
+            else:
+                tasks.append(translate_text(s.text, locale))
+                task_indices.append(idx_str)
+
         if tasks:
             translated_texts = await asyncio.gather(*tasks)
-            for s, t_text in zip(display_sentences, translated_texts):
-                s.text = t_text
+            # Update cache with new translations only if successful
+            for idx_str, t_text in zip(task_indices, translated_texts):
+                if t_text is not None:
+                    cached_sents[idx_str] = t_text
+
+                # Find the sentence object to update its text (use fallback if None)
+                for s in display_sentences:
+                    if str(s.position) == idx_str:
+                        s.text = t_text if t_text is not None else s.text
+                        break
+
+            # Save the updated sentence cache to the database
+            if translation_obj:
+                translation_obj.sentences_data = cached_sents
+                from sqlalchemy.orm.attributes import flag_modified
+
+                flag_modified(translation_obj, "sentences_data")
+                await db.commit()
 
     # Add confidence labels
     for s in display_sentences:

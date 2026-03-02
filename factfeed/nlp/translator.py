@@ -24,11 +24,12 @@ def get_translator_instance(target: str = "ru") -> GoogleTranslator:
     return GoogleTranslator(source="auto", target=target)
 
 
-async def translate_text(text: str, target: str) -> str:
+async def translate_text(text: str, target: str) -> str | None:
     """Translate a single text string asynchronously with a timeout.
 
     This function does NOT check the database cache; it is a direct wrapper
     around the translation API. Use get_or_create_translation for articles.
+    Returns None on failure to avoid caching un-translated text.
     """
     if not text or target == "en":
         return text
@@ -48,15 +49,15 @@ async def translate_text(text: str, target: str) -> str:
         return translated or text
     except asyncio.TimeoutError:
         log.warning("translation_timeout: target='%s', text_len=%d", target, len(text))
-        return text
+        return None
     except Exception as e:
         log.warning("translation_failed: error='%s', target='%s'", str(e), target)
-        return text
+        return None
 
 
 async def get_or_create_translation(
     db: AsyncSession, article: Article, target_lang: str
-) -> Article:
+) -> tuple[Article, Translation | None]:
     """Get translated title/body from DB or fetch from API and save.
 
     Updates the passed article object's title and body in-place (in memory)
@@ -67,7 +68,7 @@ async def get_or_create_translation(
     translation must handle that separately (potentially using translate_text).
     """
     if target_lang == "en":
-        return article
+        return article, None
 
     # Ensure session-level locking to allow concurrent calls (e.g. asyncio.gather)
     if not hasattr(db, "_translation_lock"):
@@ -88,7 +89,7 @@ async def get_or_create_translation(
             article.title = translation.title
         if translation.body:
             article.body = translation.body
-        return article
+        return article, translation
 
     # 2. Fetch from API (Cache Miss)
     tasks = []
@@ -105,10 +106,10 @@ async def get_or_create_translation(
     else:
         tasks.append(asyncio.sleep(0, result=""))
 
-    # If translation tasks timeout, they return the original text gracefully.
+    # If translation tasks timeout, they return None to prevent caching.
     results = await asyncio.gather(*tasks)
-    translated_title = results[0]
-    translated_body = results[1]
+    translated_title = results[0] or article.title  # Fallback to original if None
+    translated_body = results[1] or article.body  # Fallback to original if None
 
     # 3. Save to DB
     # We use upsert to be safe against race conditions
@@ -125,10 +126,13 @@ async def get_or_create_translation(
                 index_elements=["article_id", "language"],
                 set_={"title": translated_title, "body": translated_body},
             )
+            .returning(Translation)
         )
+        translation_obj = None
         try:
             async with db._translation_lock:
-                await db.execute(upsert_stmt)
+                res = await db.execute(upsert_stmt)
+                translation_obj = res.scalar_one_or_none()
                 await db.commit()
         except Exception as e:
             log.error("translation_save_failed: %s", str(e))
@@ -141,4 +145,11 @@ async def get_or_create_translation(
     if translated_body:
         article.body = translated_body
 
-    return article
+    # If upsert didn't return an object (e.g. failed), fetch it to be safe
+    if translation_obj is None:
+        stmt = select(Translation).where(
+            Translation.article_id == article.id, Translation.language == target_lang
+        )
+        translation_obj = (await db.execute(stmt)).scalar_one_or_none()
+
+    return article, translation_obj
