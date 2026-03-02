@@ -1,0 +1,50 @@
+<div
+    id="system-monitor"
+    class="system-monitor-widget"
+    hx-get="/system/widget"
+    hx-trigger="every 3s"
+    hx-swap="outerHTML"
+>
+    <div class="monitor-container {{ 'active' if state.is_ingesting else '' }}">
+        <div class="monitor-header">
+            <div class="status-indicator">
+                <span class="pulse-dot"></span>
+                <span class="status-text">
+                    {% if state.is_ingesting %} {{ _('Live Pipeline') }} {% else
+                    %} {{ _('System Ready') }} {% endif %}
+                </span>
+            </div>
+            {% if state.last_update and not state.is_ingesting %}
+            <span class="last-update"
+                >{{ state.last_update.strftime('%H:%M') }} UTC</span
+            >
+            {% endif %}
+        </div>
+
+        {% if state.is_ingesting or state.items_processed > 0 %}
+        <div class="monitor-body">
+            <div class="current-task" title="{{ state.current_task }}">
+                {{ state.current_task|truncate(40) }}
+            </div>
+            <div class="monitor-metrics">
+                <div class="metric" title="{{ _('Articles Queued') }}">
+                    <span class="metric-icon">📥</span>
+                    <span class="metric-value">{{ state.items_queued }}</span>
+                </div>
+                <div class="metric" title="{{ _('Articles Saved') }}">
+                    <span class="metric-icon">💾</span>
+                    <span class="metric-value"
+                        >{{ state.items_processed }}</span
+                    >
+                </div>
+                <div class="metric" title="{{ _('Classified') }}">
+                    <span class="metric-icon">🧠</span>
+                    <span class="metric-value"
+                        >{{ state.items_classified }}</span
+                    >
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

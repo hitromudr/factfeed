@@ -23,6 +23,7 @@ from factfeed.web.limiter import limiter
 from factfeed.web.routes import analytics as analytics_routes
 from factfeed.web.routes import article as article_routes
 from factfeed.web.routes import search as search_routes
+from factfeed.web.routes import system as system_routes
 
 log = structlog.get_logger()
 
@@ -115,6 +116,7 @@ app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 app.include_router(search_routes.router)
 app.include_router(article_routes.router)
 app.include_router(analytics_routes.router)
+app.include_router(system_routes.router, prefix="/system")
 app.include_router(api_v1_router, prefix="/api/v1", tags=["api"])
 
 

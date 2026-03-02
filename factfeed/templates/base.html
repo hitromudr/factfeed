@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{% block title %}{{ _('FactFeed') }}{% endblock %}</title>
+        <title>{% block title %}{{ _('Сортировочная') }}{% endblock %}</title>
         <link rel="stylesheet" href="/static/style.css" />
         <script src="/static/htmx.min.js"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,7 +31,7 @@
     </head>
     <body>
         <header>
-            <a href="/" class="logo">{{ _('FactFeed') }}</a>
+            <a href="/" class="logo">{{ _('Сортировочная') }}</a>
             <button
                 class="hamburger"
                 onclick="toggleMenu()"
@@ -45,6 +45,14 @@
                 <a href="/">{{ _('Search') }}</a>
                 <a href="/analytics">{{ _('Analytics') }}</a>
                 <a href="/docs">{{ _('API Docs') }}</a>
+
+                <div
+                    id="system-monitor-container"
+                    hx-get="/system/widget"
+                    hx-trigger="load"
+                    hx-swap="outerHTML"
+                ></div>
+
                 <div class="lang-switcher">
                     <button
                         onclick="setLang('en')"
@@ -94,8 +102,8 @@
 
         <footer>
             <p>
-                &copy; 2026 {{ _('FactFeed') }} &mdash; {{ _('Distinguishing
-                facts from opinions.') }}
+                &copy; 2026 {{ _('Сортировочная') }} &mdash; {{
+                _('Distinguishing facts from opinions.') }}
                 <br />
                 <a href="/docs">{{ _('API Documentation') }}</a>
             </p>

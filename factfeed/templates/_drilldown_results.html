@@ -1,0 +1,125 @@
+<div class="drilldown-results">
+    <div class="drilldown-header">
+        <h3>
+            {{ _('Articles from') }} <strong>{{ source_name }}</strong>
+            <span class="badge {{ label }}">{{ label|upper }}</span>
+        </h3>
+        <button onclick="this.closest('.drilldown-results').remove()" class="close-btn">&times;</button>
+    </div>
+
+    {% if articles %}
+    <table class="stats-table" style="margin-top: 1rem;">
+        <thead>
+            <tr>
+                <th>{{ _('Date') }}</th>
+                <th>{{ _('Title') }}</th>
+                <th>{{ _('Author') }}</th>
+                <th>{{ _('Score') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles %}
+            <tr>
+                <td style="white-space: nowrap; color: var(--text-muted); font-size: 0.85rem;">
+                    {{ article.published_at.strftime('%d %b') if article.published_at else '' }}
+                </td>
+                <td>
+                    <a href="/article/{{ article.id }}{{ '?lang=' ~ locale if locale and locale != 'en' else '' }}"
+                       class="article-link">
+                        {{ article.title }}
+                    </a>
+                </td>
+                <td style="color: var(--text-muted); font-size: 0.85rem;">
+                    {{ article.author or '—' }}
+                </td>
+                <td>
+                    {% if article.total_count > 0 %}
+                    {% set fact_pct = ((article.fact_count / article.total_count) * 100)|round|int %}
+                    <div class="fact-meter-mini" title="{{ fact_pct }}% {{ _('factual sentences') }}">
+                        <div class="meter-fill" style="width: {{ fact_pct }}%"></div>
+                    </div>
+                    {% else %}
+                    <span style="color: var(--text-muted)">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-muted); padding: 1rem;">{{ _('No articles found matching this category.') }}</p>
+    {% endif %}
+</div>
+
+<style>
+    .drilldown-results {
+        margin-top: 2rem;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .drilldown-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+    }
+
+    .drilldown-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        color: #fff;
+        font-weight: 700;
+    }
+    .badge.fact { background-color: var(--color-fact); }
+    .badge.opinion { background-color: var(--color-opinion); }
+    .badge.mixed { background-color: var(--color-mixed); }
+    .badge.unclear { background-color: var(--text-muted); }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .close-btn:hover { color: var(--text-main); }
+
+    .article-link {
+        color: var(--text-main);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .article-link:hover { color: var(--primary-color); }
+
+    .fact-meter-mini {
+        width: 60px;
+        height: 6px;
+        background: var(--bg-body);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .meter-fill {
+        height: 100%;
+        background: var(--color-fact);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>

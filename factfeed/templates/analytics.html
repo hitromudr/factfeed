@@ -13,6 +13,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
         <div class="chart-container">
             <canvas id="factualityChart"></canvas>
         </div>
+        <div id="drilldown-container"></div>
     </div>
 
     <div class="map-section">
@@ -136,6 +137,31 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 interaction: {
                     mode: 'index',
                     intersect: false,
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+                },
+                onClick: (e) => {
+                    const points = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+
+                    if (points.length) {
+                        const firstPoint = points[0];
+                        const sourceName = chart.data.labels[firstPoint.index];
+                        // 0=Facts, 1=Opinions, 2=Mixed, 3=Unclear
+                        const apiKeys = ['fact', 'opinion', 'mixed', 'unclear'];
+                        const apiKey = apiKeys[firstPoint.datasetIndex];
+
+                        if (apiKey) {
+                            htmx.ajax('GET', `/api/v1/analytics/drilldown?source=${encodeURIComponent(sourceName)}&label=${apiKey}`, {
+                                target: '#drilldown-container',
+                                swap: 'innerHTML'
+                            });
+
+                            setTimeout(() => {
+                                document.getElementById('drilldown-container').scrollIntoView({behavior: 'smooth'});
+                            }, 100);
+                        }
+                    }
                 },
                 scales: {
                     x: {

@@ -14,6 +14,7 @@ from factfeed.db.models import Article, Source
 from factfeed.ingestion.deduplicator import compute_url_hash
 from factfeed.ingestion.extractor import extract_article, parse_article_date
 from factfeed.ingestion.fetcher import can_fetch, fetch_article_page, fetch_rss_feed
+from factfeed.services.system_monitor import monitor
 
 log = structlog.get_logger()
 
@@ -27,6 +28,7 @@ async def run_ingestion_cycle(session_factory, http_client: httpx.AsyncClient) -
     Fetches all RSS feeds concurrently, then processes article pages
     sequentially per source with a politeness delay.
     """
+    monitor.start_cycle()
     cycle_id = str(uuid.uuid4())[:8]
 
     async with session_factory() as session:
@@ -41,11 +43,15 @@ async def run_ingestion_cycle(session_factory, http_client: httpx.AsyncClient) -
         {"name": s.name, "feed_url": s.feed_url, "id": s.id} for s in sources
     ]
 
+    monitor.set_task(f"Fetching RSS feeds from {source_count} sources")
+
     # Fetch all feeds concurrently
     feed_results = await asyncio.gather(
         *[fetch_rss_feed(sd, http_client) for sd in source_dicts],
         return_exceptions=True,
     )
+
+    monitor.set_task("Processing source feeds")
 
     aggregate = {
         "total_found": 0,
@@ -56,11 +62,14 @@ async def run_ingestion_cycle(session_factory, http_client: httpx.AsyncClient) -
 
     for source_dict, feed_result in zip(source_dicts, feed_results):
         source_name = source_dict["name"]
+        monitor.set_source(source_name)
 
         if isinstance(feed_result, Exception):
             _log_source_error(source_name, str(feed_result))
             aggregate["total_errors"] += 1
             continue
+
+        monitor.add_queued(len(feed_result.entries))
 
         try:
             stats = await _process_source_entries(
@@ -75,6 +84,7 @@ async def run_ingestion_cycle(session_factory, http_client: httpx.AsyncClient) -
             _log_source_error(source_name, str(exc))
             aggregate["total_errors"] += 1
 
+    monitor.end_cycle()
     log.info("ingestion_cycle_end", cycle_id=cycle_id, **aggregate)
     return aggregate
 
@@ -93,6 +103,7 @@ async def _process_source_entries(
             stats["errors"] += 1
             continue
 
+        monitor.set_task(f"Checking {url[:50]}...")
         url_hash = compute_url_hash(url)
 
         # Check for duplicates or partial articles to retry
@@ -117,6 +128,8 @@ async def _process_source_entries(
             stats["skipped"] += 1
             log.debug("article_robots_blocked", source=source_name, url=url)
             continue
+
+        monitor.set_task(f"Fetching content for {url[:50]}...")
 
         # Fetch article page
         html_bytes = await fetch_article_page(url, http_client)
@@ -174,6 +187,7 @@ async def _process_source_entries(
                     await session.execute(stmt)
                     await session.commit()
                     stats["inserted"] += 1
+                    monitor.add_processed()
 
                     if article_data["is_partial"]:
                         log.warning("retry_still_partial", source=source_name, url=url)
@@ -187,6 +201,7 @@ async def _process_source_entries(
                     inserted = await save_article(session, article_data)
                     if inserted:
                         stats["inserted"] += 1
+                        monitor.add_processed()
                     else:
                         stats["skipped"] += 1
         except Exception as exc:

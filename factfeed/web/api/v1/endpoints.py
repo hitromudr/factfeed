@@ -7,12 +7,14 @@ from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Source
 from factfeed.web.api.v1.analytics import router as analytics_router
+from factfeed.web.api.v1.system import router as system_router
 from factfeed.web.deps import get_db
 from factfeed.web.routes.search import _attach_fact_scores, search_articles
 from factfeed.web.schemas import ArticleDetailOut, ArticleOut, SourceOut
 
 router = APIRouter()
 router.include_router(analytics_router)
+router.include_router(system_router, prefix="/system", tags=["system"])
 
 
 @router.get("/sources", response_model=List[SourceOut])

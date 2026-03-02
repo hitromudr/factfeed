@@ -14,6 +14,7 @@ from factfeed.nlp.calibrator import TemperatureScaler
 from factfeed.nlp.classifier import classify_sentence
 from factfeed.nlp.pre_filter import pre_filter_sentence
 from factfeed.nlp.segmenter import segment_article
+from factfeed.services.system_monitor import monitor
 
 
 @dataclass
@@ -137,6 +138,9 @@ async def classify_unprocessed_articles(
         result = await session.execute(stmt)
         articles = result.scalars().all()
 
+    if articles:
+        monitor.set_task(f"Classifying {len(articles)} new articles")
+
     classified_count = 0
     for article in articles:
         try:
@@ -149,6 +153,7 @@ async def classify_unprocessed_articles(
             async with session_factory() as session:
                 await persist_sentences(article.id, results, session)
             classified_count += 1
+            monitor.add_classified()
         except Exception:
             import structlog
 
