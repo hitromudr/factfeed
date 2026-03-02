@@ -10,9 +10,7 @@
         border-left: 4px solid var(--color-opinion);
     "
 >
-    {{ _('This article is very short. We likely only fetched the summary due to
-    the source blocking access (paywall or anti-bot). Try the "Force Sync"
-    button below or read the original.') }}
+    {{ _('This article is very short. We likely only fetched the summary due to the source blocking access. Try the "Force Sync" button below or read the original.') }}
 </div>
 {% endif %} {% for sentence in sentences %} {% set txt_lower = sentence.text |
 lower %} {% if not ('продолжить чтение' in txt_lower or 'continue reading' in
