@@ -16,10 +16,12 @@
 lower %} {% if not ('продолжить чтение' in txt_lower or 'continue reading' in
 txt_lower or 'read more' in txt_lower or 'читать далее' in txt_lower) %} {% set
 conf_pct = ((sentence.confidence * 100) | round | int) if sentence.confidence is
-not none else 0 %}
+not none else 0 %} {% set label_map = {'fact': _('Fact'), 'opinion':
+_('Opinion'), 'mixed': _('Mixed'), 'unclear': _('Unclear')} %} {% set disp_label
+= label_map.get(sentence.label, _('Unclear')) %}
 <span
     class="sentence {{ sentence.label or 'unclear' }}"
-    title="{{ _('Confidence:') }} {{ conf_pct }}%"
+    title="{{ disp_label }} ({{ _('Confidence:') }} {{ conf_pct }}%)"
     >{{ sentence.text | safe }}
 </span>
 {% endif %} {% endfor %} {% else %}
