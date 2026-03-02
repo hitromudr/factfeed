@@ -7,6 +7,7 @@
 - ✅ **v1.2 Localization** — Phase 7 (shipped 2026-03-01)
 - ✅ **v1.3 Redesign & Translation** — Phases 8-9 (shipped 2026-03-01)
 - ✅ **v1.4 Global Coverage** — Phase 10 (shipped 2026-03-01)
+- 📅 **v2.0 Analytics & Optimization** — Phases 11-12 (planned)
 
 ## Phases
 
@@ -68,6 +69,27 @@ Plans:
 - [x] Plan 10.1: Replace DeBERTa with `mDeBERTa-v3` for multilingual Zero-Shot classification.
 - [x] Plan 10.2: Add 10+ new international RSS feeds (Guardian, DW, El País, Meduza, NHK) to `sources.py`.
 
+### Phase 11: Analytics & Visualization
+
+**Goal:** Provide insights into global news coverage and source bias through charts and maps.
+**Depends on:** Phase 10
+**Plans:** 2 plans
+
+Plans:
+- [ ] Plan 11.1: Source Factuality Ratings (Charts showing fact vs opinion ratios per source)
+- [ ] Plan 11.2: World Map Visualization (Geographic distribution of news coverage)
+
+### Phase 12: Technical Debt & Optimization
+
+**Goal:** Address outstanding technical debt and optimize performance for production.
+**Depends on:** Phase 11
+**Plans:** 3 plans
+
+Plans:
+- [ ] Plan 12.1: Confidence Calibration (Enable TemperatureScaler)
+- [ ] Plan 12.2: Mobile UX Improvements (CSS Breakpoints)
+- [ ] Plan 12.3: Docker Optimization (Reduce image size, improve caching)
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -82,3 +104,5 @@ Plans:
 | 8. UI Redesign & Widget | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 9. Content Translation | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
+| 11. Analytics & Visualization | v2.0 | 0/2 | Planned | - |
+| 12. Tech Debt & Optimization | v2.0 | 0/3 | Planned | - |

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A news aggregator and search engine that separates factual content from opinions. FactFeed fetches articles from 5 RSS sources (BBC, Reuters, AP News, NPR, Al Jazeera), classifies every sentence as fact, opinion, mixed, or unclear using hybrid NLP (spaCy + DeBERTa zero-shot), and presents results in a searchable web interface with inline color-coded highlighting and collapsible opinion sections. Shipped as v1.0.
+A news aggregator and search engine that separates factual content from opinions. FactFeed fetches articles from 14+ global RSS sources (BBC, Reuters, Al Jazeera, El País, Meduza, etc.), classifies every sentence as fact, opinion, mixed, or unclear using multilingual hybrid NLP (spaCy + mDeBERTa zero-shot), and presents results in a searchable, localized web interface (EN/RU) with auto-translation and inline color-coded highlighting. Shipped as v1.4.
 
 ## Core Value
 
@@ -28,18 +28,26 @@ Users can search and read news with clear, confidence-scored separation of facts
 - ✓ Automated API tests + UAT on 10 articles — v1.0
 - ✓ Rate limiting on search endpoint (30/min per IP) — v1.0
 - ✓ Multi-worker APScheduler safety verified — v1.0
+- ✓ REST API implementation — v1.1
+- ✓ Frontend UX overhaul and localization (EN/RU) — v1.2/v1.3
+- ✓ Professional UI redesign with Serif typography — v1.3
+- ✓ Persistent content auto-translation — v1.3
+- ✓ Global source expansion (14+ sources) and multilingual NLP — v1.4
 
 ### Active
 
-(None — next milestone needed)
+**v2.0: Analytics, Visualization & Tech Debt**
+- [ ] Source Factuality Ratings: Charts showing which sources are most factual/opinionated
+- [ ] World Map: Visualization of fact/opinion distribution by region
+- [ ] Confidence Calibration: Enable TemperatureScaler for more accurate probability scores
+- [ ] Mobile UX: Improve CSS breakpoints for small screens
+- [ ] Docker Optimization: Reduce image size and improve build caching
 
 ### Out of Scope
 
 - User accounts and authentication — no login needed; privacy-first design
-- User feedback loop for misclassification corrections — v2
-- Multi-language support — English only
-- Email/push notifications — v2
-- Visualization/charts of source bias — v2
+- User feedback loop for misclassification corrections — v2.1
+- Email/push notifications — v2.1
 - Mobile native app — web-first responsive design sufficient
 - Real-time streaming — scheduled batch processing sufficient
 - Paid APIs — free/open-source tools only
@@ -48,9 +56,9 @@ Users can search and read news with clear, confidence-scored separation of facts
 
 ## Context
 
-Shipped v1.0 with ~4,000 lines of Python across 5 phases in 3 days.
+Shipped v1.4 with ~6,000 lines of Python.
 
-**Tech stack:** Python 3.12, FastAPI, PostgreSQL 16, SQLAlchemy 2.0, Alembic, spaCy (en_core_web_sm), DeBERTa-v3-base-zeroshot-v2.0, APScheduler, trafilatura, HTMX, Jinja2.
+**Tech stack:** Python 3.12, FastAPI, PostgreSQL 16, SQLAlchemy 2.0, Alembic, spaCy (xx_sent_ud_sm), mDeBERTa-v3-base-mnli-xnli, APScheduler, trafilatura, HTMX, Jinja2, deep-translator.
 
 **Architecture:** Monolithic FastAPI app with background scheduler. Articles flow through: RSS fetch → dedup → persist → NLP classify → sentences table → web display. Full-text search via PostgreSQL tsvector/GIN.
 
@@ -84,4 +92,4 @@ Shipped v1.0 with ~4,000 lines of Python across 5 phases in 3 days.
 | trafilatura for article extraction | Best open-source HTML-to-text with partial fallback | ✓ Good — handles diverse news sites |
 
 ---
-*Last updated: 2026-02-25 after v1.0 milestone*
+*Last updated: 2026-03-01 after v1.4 milestone*
