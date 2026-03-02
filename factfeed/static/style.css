@@ -350,17 +350,17 @@ header {
 
 .search-bar button {
     padding: 0 1.5rem;
-    background-color: var(--text-main); /* Inverted for high contrast */
-    color: var(--bg-body);
+    background-color: var(--primary-color);
+    color: #ffffff;
     border: none;
     border-radius: var(--radius-sm);
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s;
 }
 
 .search-bar button:hover {
-    opacity: 0.9;
+    background-color: var(--primary-hover);
 }
 
 .filter-row {
@@ -388,7 +388,7 @@ header {
 
 .sort-toggle {
     display: flex;
-    background-color: var(--bg-card);
+    background-color: var(--bg-body); /* Darker inset background */
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     padding: 2px;
@@ -406,11 +406,12 @@ header {
 
 .sort-btn:hover {
     color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .sort-btn.active {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: var(--secondary-color);
+    color: #ffffff;
 }
 
 /* --- Article Cards (Dashboard Style) --- */
