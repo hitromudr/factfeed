@@ -17,6 +17,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 {% endif %}
             </div>
 
+            {% if has_classification %}
             <div class="legend">
                 <div class="legend-item">
                     <span class="legend-swatch fact"></span>
@@ -31,6 +32,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
                     <span>{{ _('Mixed') }}</span>
                 </div>
             </div>
+            {% endif %}
         </div>
 
         {% if similar_articles %}
@@ -71,6 +73,16 @@ _('FactFeed') }}{% endblock %} {% block content %}
             <div class="spinner"></div>
             <p>{{ _('Translating article...') }}</p>
         </div>
+        {% elif article.is_partial %}
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ _('Syncing full content from source...') }}</p>
+            <script>
+                setTimeout(function () {
+                    location.reload();
+                }, 3000);
+            </script>
+        </div>
         {% else %} {% include "_article_body.html" %} {% endif %}
     </div>
 
@@ -80,6 +92,28 @@ _('FactFeed') }}{% endblock %} {% block content %}
         </a>
 
         {% if article.url %}
+        <a
+            href="javascript:void(0)"
+            hx-post="/article/{{ article.id }}/sync"
+            hx-target="body"
+            hx-swap="innerHTML"
+            class="btn-secondary"
+            title="{{ _('Force Sync') }}"
+            style="margin-right: 1rem"
+        >
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38" />
+            </svg>
+        </a>
         <a
             href="{{ article.url }}"
             target="_blank"
@@ -131,5 +165,25 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 .forEach((el) => el.classList.remove("active"));
         }
     });
+
+    // Fix HTML rendering in sentences (since backend sends escaped HTML in JSON/sentences)
+    function fixSentenceHtml() {
+        document.querySelectorAll(".sentence").forEach((el) => {
+            // Only unescape if it looks like HTML tags are present as text
+            if (
+                el.innerHTML.includes("&lt;") &&
+                el.innerHTML.includes("&gt;")
+            ) {
+                const txt = new DOMParser().parseFromString(
+                    el.innerHTML,
+                    "text/html",
+                ).documentElement.textContent;
+                el.innerHTML = txt;
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", fixSentenceHtml);
+    document.addEventListener("htmx:afterSwap", fixSentenceHtml);
 </script>
 {% endblock %}

@@ -22,6 +22,7 @@ dependencies = [
     "slowapi>=0.1.9",
     "Babel>=2.14.0",
     "deep-translator>=1.11.4",
+    "curl-cffi>=0.14.0",
 ]
 
 [project.optional-dependencies]

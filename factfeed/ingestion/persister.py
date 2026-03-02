@@ -27,13 +27,22 @@ async def save_article(session: AsyncSession, article_data: dict) -> bool:
 async def seed_sources(session: AsyncSession, sources: list[dict]) -> None:
     """Upsert source definitions into the database.
 
-    Uses ON CONFLICT DO NOTHING on feed_url so re-runs are idempotent.
+    Uses ON CONFLICT DO UPDATE on feed_url so metadata (country/region) is kept up to date.
     """
     for source in sources:
-        stmt = (
-            pg_insert(Source)
-            .values(name=source["name"], feed_url=source["feed_url"])
-            .on_conflict_do_nothing(index_elements=["feed_url"])
+        insert_stmt = pg_insert(Source).values(
+            name=source["name"],
+            feed_url=source["feed_url"],
+            country_code=source.get("country_code"),
+            region=source.get("region"),
+        )
+        stmt = insert_stmt.on_conflict_do_update(
+            index_elements=["feed_url"],
+            set_={
+                "name": insert_stmt.excluded.name,
+                "country_code": insert_stmt.excluded.country_code,
+                "region": insert_stmt.excluded.region,
+            },
         )
         await session.execute(stmt)
     await session.commit()

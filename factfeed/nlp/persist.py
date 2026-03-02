@@ -29,13 +29,14 @@ async def persist_sentences(
         session: Async SQLAlchemy session (caller manages lifecycle).
     """
     # Delete existing sentences for this article
-    await session.execute(
-        delete(Sentence).where(Sentence.article_id == article_id)
-    )
+    await session.execute(delete(Sentence).where(Sentence.article_id == article_id))
 
     if not results:
+        print(f"No sentences to persist for article {article_id}")
         await session.commit()
         return
+
+    print(f"Persisting {len(results)} sentences for article {article_id}")
 
     # Bulk insert new sentences
     await session.execute(

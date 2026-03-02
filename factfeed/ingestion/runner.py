@@ -7,11 +7,11 @@ from datetime import datetime, timezone
 
 import httpx
 import structlog
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from factfeed.config import settings
-from factfeed.db.models import Source
-from factfeed.ingestion.deduplicator import article_exists, compute_url_hash
+from factfeed.db.models import Article, Source
+from factfeed.ingestion.deduplicator import compute_url_hash
 from factfeed.ingestion.extractor import extract_article, parse_article_date
 from factfeed.ingestion.fetcher import can_fetch, fetch_article_page, fetch_rss_feed
 
@@ -47,7 +47,12 @@ async def run_ingestion_cycle(session_factory, http_client: httpx.AsyncClient) -
         return_exceptions=True,
     )
 
-    aggregate = {"total_found": 0, "total_inserted": 0, "total_skipped": 0, "total_errors": 0}
+    aggregate = {
+        "total_found": 0,
+        "total_inserted": 0,
+        "total_skipped": 0,
+        "total_errors": 0,
+    }
 
     for source_dict, feed_result in zip(source_dicts, feed_results):
         source_name = source_dict["name"]
@@ -90,12 +95,22 @@ async def _process_source_entries(
 
         url_hash = compute_url_hash(url)
 
-        # Check for duplicates
+        # Check for duplicates or partial articles to retry
+        is_update = False
         async with session_factory() as session:
-            if await article_exists(url_hash, session):
+            stmt = select(Article.is_partial).where(Article.url_hash == url_hash)
+            result = await session.execute(stmt)
+            existing_partial = result.scalar_one_or_none()
+
+            if existing_partial is False:
+                # Full article exists, skip
                 stats["skipped"] += 1
                 log.debug("article_duplicate_skipped", source=source_name, url=url)
                 continue
+            elif existing_partial is True:
+                # Partial article exists, retry fetch
+                is_update = True
+                log.info("retrying_partial_article", source=source_name, url=url)
 
         # Check robots.txt
         if not await can_fetch(url, settings.user_agent, http_client):
@@ -141,15 +156,43 @@ async def _process_source_entries(
         # Persist
         try:
             async with session_factory() as session:
-                from factfeed.ingestion.persister import save_article
-
-                inserted = await save_article(session, article_data)
-                if inserted:
+                if is_update:
+                    # Update existing partial article
+                    stmt = (
+                        update(Article)
+                        .where(Article.url_hash == url_hash)
+                        .values(
+                            title=article_data["title"],
+                            body=article_data["body"],
+                            body_html=article_data["body_html"],
+                            author=article_data["author"],
+                            lead_image_url=article_data["lead_image_url"],
+                            published_at=article_data["published_at"],
+                            is_partial=article_data["is_partial"],
+                        )
+                    )
+                    await session.execute(stmt)
+                    await session.commit()
                     stats["inserted"] += 1
+
+                    if article_data["is_partial"]:
+                        log.warning("retry_still_partial", source=source_name, url=url)
+                    else:
+                        log.info(
+                            "retry_success_full_content", source=source_name, url=url
+                        )
                 else:
-                    stats["skipped"] += 1
+                    from factfeed.ingestion.persister import save_article
+
+                    inserted = await save_article(session, article_data)
+                    if inserted:
+                        stats["inserted"] += 1
+                    else:
+                        stats["skipped"] += 1
         except Exception as exc:
-            log.warning("article_save_failed", source=source_name, url=url, error=str(exc))
+            log.warning(
+                "article_save_failed", source=source_name, url=url, error=str(exc)
+            )
             stats["errors"] += 1
 
         # Politeness delay between article fetches
@@ -195,7 +238,12 @@ def _log_source_error(source_name: str, error: str) -> None:
             consecutive_failures=count,
         )
     else:
-        log.warning("source_fetch_error", source=source_name, error=error, consecutive_failures=count)
+        log.warning(
+            "source_fetch_error",
+            source=source_name,
+            error=error,
+            consecutive_failures=count,
+        )
 
 
 def _reset_failure_count(source_name: str) -> None:

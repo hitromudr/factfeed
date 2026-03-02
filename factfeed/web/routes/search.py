@@ -82,6 +82,9 @@ async def search_articles(
     """Build and execute a composable search query with FTS, filters, and sort."""
     stmt = select(Article).options(selectinload(Article.source))
 
+    # Filter out empty content
+    stmt = stmt.where(Article.body.is_not(None), Article.body != "")
+
     # Subqueries for fact density calculation
     fact_count = (
         select(func.count())

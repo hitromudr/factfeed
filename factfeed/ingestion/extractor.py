@@ -1,5 +1,6 @@
 """Article body extraction with trafilatura and partial fallback."""
 
+import re
 from datetime import datetime, timezone
 
 import structlog
@@ -11,9 +12,7 @@ log = structlog.get_logger()
 MINIMUM_BODY_LENGTH = 200
 
 
-def extract_article(
-    html_bytes: bytes, url: str, rss_summary: str | None
-) -> dict:
+def extract_article(html_bytes: bytes, url: str, rss_summary: str | None) -> dict:
     """Extract article content from pre-fetched HTML bytes.
 
     Returns a dict with body, body_html, author, published_at, lead_image_url,
@@ -33,7 +32,7 @@ def extract_article(
                 html_bytes,
                 url=url,
                 output_format="html",
-                include_images=False,
+                include_images=True,
                 favor_recall=True,
             )
             if body_html is None:

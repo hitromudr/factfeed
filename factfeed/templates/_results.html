@@ -22,14 +22,15 @@
     >
         {% set shown_sources = [] %} {% for article in group.articles %} {% if
         article.source.name not in shown_sources %} {% set _dummy =
-        shown_sources.append(article.source.name) %} {% set fact_ratio = 0 %} {%
-        if article.total_count and article.total_count > 0 %} {% set fact_ratio
-        = (article.fact_count / article.total_count) %} {% endif %} {% set
-        indicator_color = 'var(--color-mixed)' %} {% set indicator_text =
-        _('Mixed') %} {% if fact_ratio >= 0.7 %} {% set indicator_color =
-        'var(--color-fact)' %} {% set indicator_text = _('Fact') %} {% elif
-        fact_ratio <= 0.4 %} {% set indicator_color = 'var(--color-opinion)' %}
-        {% set indicator_text = _('Opinion') %} {% endif %}
+        shown_sources.append(article.source.name) %} {% set indicator_color =
+        'var(--text-muted)' %} {% set indicator_text = _('Pending') %} {% if
+        article.total_count and article.total_count > 0 %} {% set fact_ratio =
+        (article.fact_count / article.total_count) %} {% if fact_ratio >= 0.7 %}
+        {% set indicator_color = 'var(--color-fact)' %} {% set indicator_text =
+        _('Fact') %} {% elif fact_ratio <= 0.4 %} {% set indicator_color =
+        'var(--color-opinion)' %} {% set indicator_text = _('Opinion') %} {%
+        else %} {% set indicator_color = 'var(--color-mixed)' %} {% set
+        indicator_text = _('Mixed') %} {% endif %} {% endif %}
 
         <a
             href="/article/{{ article.id }}{{ '?lang=' ~ locale if locale and locale != 'en' else '' }}"

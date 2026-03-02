@@ -130,6 +130,7 @@ async def classify_unprocessed_articles(
         stmt = (
             select(Article)
             .where(Article.body.isnot(None))
+            .where(Article.body != "")
             .where(Article.id.notin_(subq))
             .limit(batch_size)
         )

@@ -1,0 +1,404 @@
+{% extends "base.html" %} {% block title %}{{ _('Analytics') }} - {{
+_('FactFeed') }}{% endblock %} {% block content %}
+<div class="analytics-container">
+    <div class="header-section">
+        <h1>{{ _('Source Analytics') }}</h1>
+        <p class="subtitle">
+            {{ _('Visualizing the balance between factual reporting and opinion
+            across global news sources.') }}
+        </p>
+    </div>
+
+    <div class="chart-section">
+        <div class="chart-container">
+            <canvas id="factualityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="map-section">
+        <h2>{{ _('Global Coverage') }}</h2>
+        <div id="world-map" class="map-container"></div>
+    </div>
+
+    <div class="table-section">
+        <h2>{{ _('Detailed Statistics') }}</h2>
+        <div class="stats-table-container">
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>{{ _('Source') }}</th>
+                        <th>{{ _('Factuality Score') }}</th>
+                        <th class="num-col">{{ _('Total Sentences') }}</th>
+                        <th class="num-col">{{ _('Facts') }}</th>
+                        <th class="num-col">{{ _('Opinions') }}</th>
+                        <th class="num-col">{{ _('Mixed/Unclear') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in stats %}
+                    <tr>
+                        <td class="source-name">{{ s.source }}</td>
+                        <td>
+                            {% set score_pct = (s.score * 100) | round | int %}
+                            {% set badge_class = 'high' if s.score >= 0.7 else
+                            ('medium' if s.score >= 0.4 else 'low') %}
+                            <div class="score-badge {{ badge_class }}">
+                                {{ score_pct }}%
+                            </div>
+                        </td>
+                        <td class="num-col">{{ s.total }}</td>
+                        <td class="num-col">{{ s.facts }}</td>
+                        <td class="num-col">{{ s.opinions }}</td>
+                        <td class="num-col">{{ s.mixed + s.unclear }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const stats = {{ stats_json | safe }};
+        const geoStats = {{ geo_stats_json | safe }};
+
+        function getThemeColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                          (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            if (isDark) {
+                return {
+                    text: '#94a3b8', // slate-400
+                    grid: '#334155', // slate-700
+                    tooltipBg: 'rgba(30, 41, 59, 0.95)', // slate-800
+                    tooltipText: '#f1f5f9', // slate-100
+                    tooltipBorder: '#475569' // slate-600
+                };
+            }
+            return {
+                text: '#6b7280', // gray-500
+                grid: '#e5e7eb', // gray-200
+                tooltipBg: 'rgba(255, 255, 255, 0.95)',
+                tooltipText: '#1f2937', // gray-800
+                tooltipBorder: '#e5e7eb'
+            };
+        }
+
+        const colors = getThemeColors();
+
+        // --- Factuality Chart ---
+        const ctx = document.getElementById('factualityChart').getContext('2d');
+
+        const labels = stats.map(s => s.source);
+        const dataFacts = stats.map(s => s.facts);
+        const dataOpinions = stats.map(s => s.opinions);
+        const dataMixed = stats.map(s => s.mixed);
+        const dataUnclear = stats.map(s => s.unclear);
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '{{ _("Facts") }}',
+                        data: dataFacts,
+                        backgroundColor: '#10b981', // green-500
+                    },
+                    {
+                        label: '{{ _("Opinions") }}',
+                        data: dataOpinions,
+                        backgroundColor: '#f59e0b', // amber-500
+                    },
+                    {
+                        label: '{{ _("Mixed") }}',
+                        data: dataMixed,
+                        backgroundColor: '#6366f1', // indigo-500
+                    },
+                    {
+                        label: '{{ _("Unclear") }}',
+                        data: dataUnclear,
+                        backgroundColor: '#9ca3af', // gray-400
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: {
+                            display: false
+                        },
+                        ticks: { color: colors.text }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: {
+                            borderDash: [2, 4],
+                            color: colors.grid
+                        },
+                        ticks: { color: colors.text }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            color: colors.text
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: colors.tooltipBg,
+                        titleColor: colors.tooltipText,
+                        bodyColor: colors.tooltipText,
+                        borderColor: colors.tooltipBorder,
+                        borderWidth: 1,
+                        padding: 10,
+                        boxPadding: 4
+                    }
+                }
+            }
+        });
+
+        // Watch for theme changes
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === "attributes" && mutation.attributeName === "data-theme") {
+                    const newColors = getThemeColors();
+                    chart.options.scales.x.ticks.color = newColors.text;
+                    chart.options.scales.y.ticks.color = newColors.text;
+                    chart.options.scales.y.grid.color = newColors.grid;
+                    chart.options.plugins.legend.labels.color = newColors.text;
+                    chart.options.plugins.tooltip.backgroundColor = newColors.tooltipBg;
+                    chart.options.plugins.tooltip.titleColor = newColors.tooltipText;
+                    chart.options.plugins.tooltip.bodyColor = newColors.tooltipText;
+                    chart.options.plugins.tooltip.borderColor = newColors.tooltipBorder;
+                    chart.update();
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true
+        });
+
+        // --- World Map ---
+        const mapData = {};
+        geoStats.forEach(item => {
+            if (item.country) {
+                mapData[item.country] = item.count;
+            }
+        });
+
+        new jsVectorMap({
+            selector: '#world-map',
+            map: 'world',
+            zoomButtons: true,
+            zoomOnScroll: false,
+            regionStyle: {
+                initial: {
+                    fill: '#f3f4f6',
+                    stroke: '#d1d5db',
+                    strokeWidth: 0.5,
+                    fillOpacity: 1
+                },
+                hover: {
+                    fillOpacity: 0.7,
+                    cursor: 'pointer'
+                }
+            },
+            series: {
+                regions: [{
+                    attribute: 'fill',
+                    legend: {
+                        title: '{{ _("Articles") }}'
+                    },
+                    scale: ['#d1fae5', '#047857'],
+                    values: mapData
+                }]
+            },
+            onRegionTooltipShow(event, tooltip, code) {
+                const count = mapData[code] || 0;
+                if (count > 0) {
+                    tooltip.text(
+                        `${tooltip.text()} (${count})`
+                    );
+                }
+            }
+        });
+    });
+</script>
+
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .header-section {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    h1 {
+        font-family: "Merriweather", serif;
+        font-size: 2rem;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .chart-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.05),
+            0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 3rem;
+        border: 1px solid #f3f4f6;
+    }
+
+    .map-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.05),
+            0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 3rem;
+        border: 1px solid #f3f4f6;
+    }
+
+    .map-container {
+        width: 100%;
+        height: 400px;
+    }
+
+    .map-section h2 {
+        font-size: 1.25rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 500px;
+        width: 100%;
+    }
+
+    .table-section h2 {
+        font-size: 1.25rem;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
+    .stats-table-container {
+        overflow-x: auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f3f4f6;
+    }
+
+    .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .stats-table th,
+    .stats-table td {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .stats-table th {
+        background-color: #f9fafb;
+        font-weight: 600;
+        color: #4b5563;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stats-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .stats-table tr:hover td {
+        background-color: #f9fafb;
+    }
+
+    .source-name {
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .num-col {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .score-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        width: 3.5rem;
+    }
+
+    .score-badge.high {
+        background-color: #d1fae5;
+        color: #047857;
+    }
+
+    .score-badge.medium {
+        background-color: #fef3c7;
+        color: #b45309;
+    }
+
+    .score-badge.low {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 350px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,9 +1,12 @@
-.PHONY: help install run test migrate revision clean docker-up docker-down i18n-extract i18n-update i18n-compile i18n-init
+.PHONY: help install dev test lint format clean \
+        up start stop down restart logs ps shell db-shell \
+        migrate revision init-test-db \
+        i18n-extract i18n-update i18n-compile i18n-init
 
 # Configuration
 APP_MODULE := factfeed.web.main:app
 HOST := 0.0.0.0
-PORT := 8001
+PORT := 8000
 # Connect to Docker Postgres from host (port 5433)
 LOCAL_DB_URL := postgresql+asyncpg://factfeed:factfeed@localhost:5433/factfeed
 TEST_DB_URL := postgresql+asyncpg://factfeed:factfeed@localhost:5433/factfeed_test
@@ -11,37 +14,85 @@ TEST_DB_URL := postgresql+asyncpg://factfeed:factfeed@localhost:5433/factfeed_te
 help:
 	@echo "FactFeed Project Management"
 	@echo "==========================="
-	@echo "Dev Commands:"
+	@echo "Development (Local):"
 	@echo "  make install       Install dependencies"
-	@echo "  make run           Start local server (uses docker db on port 5433)"
+	@echo "  make dev           Start local server with hot reload"
 	@echo "  make test          Run tests"
-	@echo "  make clean         Cleanup"
+	@echo "  make lint          Run linters (ruff)"
+	@echo "  make format        Format code (ruff)"
+	@echo "  make clean         Cleanup cache files"
 	@echo ""
-	@echo "DB / Docker:"
+	@echo "Docker Management:"
+	@echo "  make up            Start stack in foreground"
+	@echo "  make start         Start stack in background (daemon)"
+	@echo "  make stop          Stop stack"
+	@echo "  make restart       Restart stack"
+	@echo "  make down          Stop and remove containers"
+	@echo "  make logs          Follow container logs"
+	@echo "  make ps            Show container status"
+	@echo "  make shell         Shell into app container"
+	@echo ""
+	@echo "Database:"
 	@echo "  make migrate       Apply migrations"
-	@echo "  make revision      Create migration"
-	@echo "  make init-test-db  Create test database in Docker"
-	@echo "  make docker-up     Start full stack in Docker"
-	@echo "  make docker-down   Stop Docker"
+	@echo "  make revision      Create new migration"
+	@echo "  make db-shell      Connect to database (psql)"
 	@echo ""
 	@echo "i18n:"
-	@echo "  make i18n-extract  Extract strings"
-	@echo "  make i18n-update   Update .po"
-	@echo "  make i18n-compile  Compile .mo"
-	@echo "  make i18n-init     Init new language"
+	@echo "  make i18n-extract  Extract strings to .pot"
+	@echo "  make i18n-update   Update .po files"
+	@echo "  make i18n-compile  Compile .mo files"
+
+# --- Development ---
 
 install:
 	uv sync
-	uv pip install https://github.com/explosion/spacy-models/releases/download/xx_sent_ud_sm-3.8.0/xx_sent_ud_sm-3.8.0.tar.gz
 
-run:
+dev:
 	DATABASE_URL=$(LOCAL_DB_URL) uv run uvicorn $(APP_MODULE) --host $(HOST) --port $(PORT) --reload
 
 test:
 	TEST_DATABASE_URL=$(TEST_DB_URL) uv run pytest
 
-init-test-db:
-	docker-compose exec -T postgres createdb -U factfeed factfeed_test || true
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff check --fix .
+	uv run ruff format .
+
+clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".ruff_cache" -exec rm -rf {} +
+	rm -rf .coverage htmlcov
+
+# --- Docker Control ---
+
+up:
+	docker-compose up -d --build
+
+start:
+	docker-compose up -d --build
+
+stop:
+	docker-compose stop
+
+restart:
+	docker-compose restart
+
+down:
+	docker-compose down
+
+logs:
+	docker-compose logs -f
+
+ps:
+	docker-compose ps
+
+shell:
+	docker-compose exec app /bin/sh
+
+# --- Database ---
 
 migrate:
 	DATABASE_URL=$(LOCAL_DB_URL) uv run alembic upgrade head
@@ -51,28 +102,24 @@ revision:
 	read msg; \
 	DATABASE_URL=$(LOCAL_DB_URL) uv run alembic revision --autogenerate -m "$$msg"
 
-docker-up:
-	docker-compose up --build
+init-test-db:
+	docker-compose exec -T postgres createdb -U factfeed factfeed_test || true
 
-docker-down:
-	docker-compose down
+db-shell:
+	docker-compose exec postgres psql -U factfeed -d factfeed
+
+# --- i18n ---
 
 i18n-extract:
-	uv run pybabel extract -F babel.cfg -o factfeed/translations/messages.pot .
+	uv run pybabel extract -F babel.cfg -k _ -o messages.pot .
 
 i18n-update:
-	uv run pybabel update -i factfeed/translations/messages.pot -d factfeed/translations
+	uv run pybabel update -i messages.pot -d factfeed/translations
 
 i18n-compile:
 	uv run pybabel compile -d factfeed/translations
 
 i18n-init:
-	@printf "Enter locale code: "; \
+	@printf "Enter locale code (e.g. ru): "; \
 	read lang; \
-	uv run pybabel init -i factfeed/translations/messages.pot -d factfeed/translations -l $$lang
-
-clean:
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type d -name ".pytest_cache" -exec rm -rf {} +
-	find . -type d -name ".ruff_cache" -exec rm -rf {} +
-	rm -rf .coverage htmlcov
+	uv run pybabel init -i messages.pot -d factfeed/translations -l $$lang

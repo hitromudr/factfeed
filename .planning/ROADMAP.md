@@ -76,8 +76,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] Plan 11.1: Source Factuality Ratings (Charts showing fact vs opinion ratios per source)
-- [ ] Plan 11.2: World Map Visualization (Geographic distribution of news coverage)
+- [x] Plan 11.1: Source Factuality Ratings (Charts showing fact vs opinion ratios per source)
+- [x] Plan 11.2: World Map Visualization (Geographic distribution of news coverage)
 
 ### Phase 12: Technical Debt & Optimization
 
@@ -104,5 +104,5 @@ Plans:
 | 8. UI Redesign & Widget | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 9. Content Translation | v1.3 | 1/1 | Complete | 2026-03-01 |
 | 10. Global Coverage | v1.4 | 2/2 | Complete | 2026-03-01 |
-| 11. Analytics & Visualization | v2.0 | 0/2 | Planned | - |
-| 12. Tech Debt & Optimization | v2.0 | 0/3 | Planned | - |
+| 11. Analytics & Visualization | v2.0 | 2/2 | Complete | 2026-03-02 |
+| 12. Tech Debt & Optimization | v2.0 | 0/3 | Active | - |

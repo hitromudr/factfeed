@@ -25,6 +25,8 @@ class Source(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     feed_url = Column(Text, nullable=False, unique=True)
+    country_code = Column(String(2), nullable=True)
+    region = Column(String(50), nullable=True)
 
     articles = relationship("Article", back_populates="source")
 

@@ -20,6 +20,7 @@ from factfeed.ingestion.scheduler import create_scheduler
 from factfeed.ingestion.sources import SOURCES
 from factfeed.web.api.v1.endpoints import router as api_v1_router
 from factfeed.web.limiter import limiter
+from factfeed.web.routes import analytics as analytics_routes
 from factfeed.web.routes import article as article_routes
 from factfeed.web.routes import search as search_routes
 
@@ -102,6 +103,7 @@ app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 # Route modules
 app.include_router(search_routes.router)
 app.include_router(article_routes.router)
+app.include_router(analytics_routes.router)
 app.include_router(api_v1_router, prefix="/api/v1", tags=["api"])
 
 

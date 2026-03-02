@@ -6,11 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from factfeed.db.models import Article, Source
+from factfeed.web.api.v1.analytics import router as analytics_router
 from factfeed.web.deps import get_db
 from factfeed.web.routes.search import _attach_fact_scores, search_articles
 from factfeed.web.schemas import ArticleDetailOut, ArticleOut, SourceOut
 
 router = APIRouter()
+router.include_router(analytics_router)
 
 
 @router.get("/sources", response_model=List[SourceOut])

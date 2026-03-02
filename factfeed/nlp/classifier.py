@@ -11,13 +11,13 @@ This prevents 3-10 second startup on every test import.
 
 from typing import Callable
 
-CANDIDATE_LABELS = ["factual statement", "opinion or commentary"]
-HYPOTHESIS_TEMPLATE = "This sentence is a {}."
-LABEL_MAP = {"factual statement": "fact", "opinion or commentary": "opinion"}
+CANDIDATE_LABELS = ["news", "opinion"]
+HYPOTHESIS_TEMPLATE = "This text is {}."
+LABEL_MAP = {"news": "fact", "opinion": "opinion"}
 
 
 def create_classifier(
-    model_name: str = "MoritzLaurer/mdeberta-v3-base-zeroshot-v1.1-all-nli",
+    model_name: str = "MoritzLaurer/mDeBERTa-v3-base-mnli-xnli",
 ) -> Callable:
     """Create a zero-shot classification pipeline.
 

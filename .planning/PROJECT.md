@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A news aggregator and search engine that separates factual content from opinions. FactFeed fetches articles from 14+ global RSS sources (BBC, Reuters, Al Jazeera, El País, Meduza, etc.), classifies every sentence as fact, opinion, mixed, or unclear using multilingual hybrid NLP (spaCy + mDeBERTa zero-shot), and presents results in a searchable, localized web interface (EN/RU) with auto-translation and inline color-coded highlighting. Shipped as v1.4.
+A news aggregator and search engine that separates factual content from opinions. FactFeed fetches articles from 14+ global RSS sources (BBC, Reuters, Al Jazeera, El País, Meduza, etc.), classifies every sentence as fact, opinion, mixed, or unclear using multilingual hybrid NLP (spaCy + mDeBERTa zero-shot), and presents results in a searchable, localized web interface (EN/RU) with auto-translation and inline color-coded highlighting. Currently implementing v2.0 (Analytics & Optimization).
 
 ## Core Value
 
@@ -37,8 +37,8 @@ Users can search and read news with clear, confidence-scored separation of facts
 ### Active
 
 **v2.0: Analytics, Visualization & Tech Debt**
-- [ ] Source Factuality Ratings: Charts showing which sources are most factual/opinionated
-- [ ] World Map: Visualization of fact/opinion distribution by region
+- [x] Source Factuality Ratings: Charts showing which sources are most factual/opinionated
+- [x] World Map: Visualization of fact/opinion distribution by region
 - [ ] Confidence Calibration: Enable TemperatureScaler for more accurate probability scores
 - [ ] Mobile UX: Improve CSS breakpoints for small screens
 - [ ] Docker Optimization: Reduce image size and improve build caching
@@ -92,4 +92,4 @@ Shipped v1.4 with ~6,000 lines of Python.
 | trafilatura for article extraction | Best open-source HTML-to-text with partial fallback | ✓ Good — handles diverse news sites |
 
 ---
-*Last updated: 2026-03-01 after v1.4 milestone*
+*Last updated: 2026-03-02 during v2.0 milestone*

@@ -38,8 +38,9 @@
     --font-serif: "Merriweather", "Georgia", serif;
 }
 
+/* Dark Mode (System Preference) */
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
         --primary-color: #f8fafc;
         --primary-hover: #e2e8f0;
         --accent-color: #60a5fa;
@@ -57,6 +58,111 @@
         --color-mixed: #fbbf24;
         --color-mixed-light: rgba(251, 191, 36, 0.3);
     }
+}
+
+/* Dark Mode (Manual Override) */
+:root[data-theme="dark"] {
+    --primary-color: #f8fafc;
+    --primary-hover: #e2e8f0;
+    --accent-color: #60a5fa;
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-body: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+
+    --color-fact: #34d399;
+    --color-fact-light: rgba(52, 211, 153, 0.3);
+    --color-opinion: #f87171;
+    --color-opinion-light: rgba(248, 113, 113, 0.3);
+    --color-mixed: #fbbf24;
+    --color-mixed-light: rgba(251, 191, 36, 0.3);
+}
+
+/* Dark Mode (Manual Override) */
+:root[data-theme="dark"] {
+    --primary-color: #f8fafc;
+    --primary-hover: #e2e8f0;
+    --accent-color: #60a5fa;
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-body: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+
+    --color-fact: #34d399;
+    --color-fact-light: rgba(52, 211, 153, 0.3);
+    --color-opinion: #f87171;
+    --color-opinion-light: rgba(248, 113, 113, 0.3);
+    --color-mixed: #fbbf24;
+    --color-mixed-light: rgba(251, 191, 36, 0.3);
+}
+
+/* Chart.js dark mode override */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .chart-section {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    :root:not([data-theme="light"]) .stats-table-container {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    :root:not([data-theme="light"]) .map-section {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+    }
+    :root:not([data-theme="light"]) .stats-table th,
+    :root:not([data-theme="light"]) .stats-table td {
+        border-color: var(--border-color) !important;
+    }
+    :root:not([data-theme="light"]) .stats-table th {
+        background-color: #0f172a !important; /* Slightly darker than card-bg */
+        color: var(--text-muted) !important;
+    }
+    :root:not([data-theme="light"]) .stats-table tr:hover td {
+        background-color: #334155 !important;
+    }
+    :root:not([data-theme="light"]) .source-name {
+        color: var(--text-main) !important;
+    }
+    :root:not([data-theme="light"]) h1,
+    :root:not([data-theme="light"]) h2 {
+        color: var(--text-main) !important;
+    }
+}
+
+:root[data-theme="dark"] .chart-section {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+:root[data-theme="dark"] .stats-table-container {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+:root[data-theme="dark"] .map-section {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+:root[data-theme="dark"] .stats-table th,
+:root[data-theme="dark"] .stats-table td {
+    border-color: var(--border-color) !important;
+}
+:root[data-theme="dark"] .stats-table th {
+    background-color: #0f172a !important;
+    color: var(--text-muted) !important;
+}
+:root[data-theme="dark"] .stats-table tr:hover td {
+    background-color: #334155 !important;
+}
+:root[data-theme="dark"] .source-name {
+    color: var(--text-main) !important;
+}
+:root[data-theme="dark"] h1,
+:root[data-theme="dark"] h2 {
+    color: var(--text-main) !important;
 }
 
 * {
@@ -153,6 +259,56 @@ header {
     display: none; /* Hidden because buttons have backgrounds */
 }
 
+/* Theme Switcher */
+.theme-switcher {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
+    padding: 4px;
+}
+
+.theme-switcher:hover {
+    color: var(--accent-color);
+}
+
+.theme-icon {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.theme-icon-sun {
+    display: none;
+}
+.theme-icon-moon {
+    display: block;
+}
+
+/* In Dark Mode, show Sun */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-icon-sun {
+        display: block;
+    }
+    :root:not([data-theme="light"]) .theme-icon-moon {
+        display: none;
+    }
+}
+:root[data-theme="dark"] .theme-icon-sun {
+    display: block;
+}
+:root[data-theme="dark"] .theme-icon-moon {
+    display: none;
+}
+
 /* Search Section */
 .search-section {
     background: var(--card-bg);
@@ -199,9 +355,15 @@ header {
 }
 
 @media (prefers-color-scheme: dark) {
-    .search-bar button {
+    :root:not([data-theme="light"]) .search-bar button,
+    :root:not([data-theme="light"]) .btn-primary {
         color: #0f172a;
     }
+}
+
+:root[data-theme="dark"] .search-bar button,
+:root[data-theme="dark"] .btn-primary {
+    color: #0f172a;
 }
 
 .search-bar button:hover {
@@ -461,52 +623,46 @@ header {
     margin-bottom: 1.5rem;
 }
 
-/* The Core Feature: Sentence Underlining */
+/* The Core Feature: Sentence Highlighting */
 .sentence {
     position: relative;
     text-decoration: none;
-    border-bottom: 2px solid; /* Default solid line */
     transition: all 0.2s ease;
     cursor: default;
-    padding-bottom: 1px;
+    border-radius: 3px;
+    padding: 2px 0;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
 }
 
-/* Colors for underlines (faint by default to be non-intrusive) */
+/* Colors for highlighting */
 .sentence.fact {
-    border-bottom-color: var(--color-fact-light);
+    background-color: rgba(5, 150, 105, 0.25);
 }
 .sentence.opinion {
-    border-bottom-color: var(--color-opinion-light);
+    background-color: rgba(185, 28, 28, 0.25);
 }
 .sentence.mixed {
-    border-bottom-color: var(--color-mixed-light);
+    background-color: rgba(180, 83, 9, 0.25);
 }
 .sentence.unclear {
-    border-bottom-color: transparent;
+    background-color: transparent;
 }
 
-/* Hover states: Thicken line, slight background tint */
-.sentence:hover,
-.sentence.active {
-    border-bottom-width: 3px;
-}
-
+/* Hover states: Darker background tint */
 .sentence.fact:hover,
 .sentence.fact.active {
-    border-bottom-color: var(--color-fact);
-    background-color: rgba(5, 150, 105, 0.05); /* Very subtle tint */
+    background-color: rgba(5, 150, 105, 0.4);
 }
 
 .sentence.opinion:hover,
 .sentence.opinion.active {
-    border-bottom-color: var(--color-opinion);
-    background-color: rgba(185, 28, 28, 0.05);
+    background-color: rgba(185, 28, 28, 0.4);
 }
 
 .sentence.mixed:hover,
 .sentence.mixed.active {
-    border-bottom-color: var(--color-mixed);
-    background-color: rgba(180, 83, 9, 0.05);
+    background-color: rgba(180, 83, 9, 0.4);
 }
 
 /* Tooltip behavior is handled by 'title' attribute natively,
@@ -597,9 +753,29 @@ header {
 }
 
 @media (prefers-color-scheme: dark) {
-    .btn-primary {
+    :root:not([data-theme="light"]) .btn-primary {
         color: #0f172a;
     }
+    /* Fix secondary buttons in dark mode */
+    :root:not([data-theme="light"]) .btn-secondary {
+        border-color: var(--border-color) !important;
+        background-color: transparent !important;
+        color: var(--text-main) !important;
+    }
+    :root:not([data-theme="light"]) .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+}
+:root[data-theme="dark"] .btn-primary {
+    color: #0f172a;
+}
+:root[data-theme="dark"] .btn-secondary {
+    border-color: var(--border-color) !important;
+    background-color: transparent !important;
+    color: var(--text-main) !important;
+}
+:root[data-theme="dark"] .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .btn-secondary {

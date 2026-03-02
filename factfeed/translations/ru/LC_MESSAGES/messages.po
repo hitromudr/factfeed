@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-03-01 10:34+0300\n"
-"PO-Revision-Date: 2026-03-01 10:34+0300\n"
+"POT-Creation-Date: 2026-03-02 09:46+0300\n"
+"PO-Revision-Date: 2026-03-02 11:00+0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
 "Language-Team: ru <LL@li.org>\n"
@@ -19,84 +19,127 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: factfeed/templates/_results.html:22
-msgid "facts"
-msgstr "фактов"
-
-#: factfeed/templates/_results.html:22
-msgid "opinions"
-msgstr "мнений"
-
-#: factfeed/templates/_results.html:22
-msgid "mixed"
-msgstr "смешанных"
-
-#: factfeed/templates/_results.html:38
-msgid "Facts"
-msgstr "Факты"
-
-#: factfeed/templates/_results.html:45
-msgid "Processing"
-msgstr "Обработка"
-
-#: factfeed/templates/_results.html:57
-msgid "No articles found for"
-msgstr "Статьи не найдены по запросу"
-
-#: factfeed/templates/_results.html:59
-msgid "Try adjusting your filters or search terms."
-msgstr "Попробуйте изменить фильтры или условия поиска."
-
-#: factfeed/templates/_results.html:62
-msgid "No articles available yet."
-msgstr "Статей пока нет."
-
-#: factfeed/templates/_results.html:64
-msgid "The ingestion pipeline may still be running."
-msgstr "Процесс сбора данных, возможно, еще выполняется."
-
-#: factfeed/templates/article.html:2 factfeed/templates/base.html:6
-#: factfeed/templates/base.html:18 factfeed/templates/base.html:29
-msgid "FactFeed"
-msgstr "FactFeed"
-
-#: factfeed/templates/article.html:10
-msgid "by"
-msgstr "автор:"
-
-#: factfeed/templates/article.html:21
-msgid "Fact"
-msgstr "Факт"
-
-#: factfeed/templates/article.html:25
-msgid "Opinion"
-msgstr "Мнение"
-
-#: factfeed/templates/article.html:29
-msgid "Mixed/Unclear"
-msgstr "Смешанное/Неясно"
-
-#: factfeed/templates/article.html:42 factfeed/templates/article.html:75
+#: factfeed/templates/_article_body.html:6
 msgid "confidence"
 msgstr "уверенность"
 
-#: factfeed/templates/article.html:47
+#: factfeed/templates/_article_body.html:11
 msgid "No content available."
 msgstr "Контент недоступен."
 
-#: factfeed/templates/article.html:56
+#: factfeed/templates/_article_body.html:17
 msgid "Classification pending."
 msgstr "Ожидается классификация."
 
-#: factfeed/templates/article.html:65
-msgid "Show opinion content"
-msgstr "Показать мнения"
+#: factfeed/templates/_results.html:26
+msgid "Pending"
+msgstr ""
 
-#: factfeed/templates/article.html:66
-msgid "sentences"
-msgstr "предложений"
+#: factfeed/templates/_results.html:30 factfeed/templates/article.html:24
+msgid "Fact"
+msgstr "Факт"
 
-#: factfeed/templates/article.html:84
+#: factfeed/templates/_results.html:31 factfeed/templates/article.html:28
+msgid "Opinion"
+msgstr "Мнение"
+
+#: factfeed/templates/_results.html:33 factfeed/templates/analytics.html:98
+#: factfeed/templates/article.html:32 factfeed/templates/search.html:29
+msgid "Mixed"
+msgstr "Смешанный"
+
+#: factfeed/templates/_results.html:97
+msgid "No articles found for"
+msgstr "Статьи не найдены по запросу"
+
+#: factfeed/templates/_results.html:99
+msgid "Try adjusting your filters or search terms."
+msgstr "Попробуйте изменить фильтры или условия поиска."
+
+#: factfeed/templates/_results.html:102
+msgid "No articles available yet."
+msgstr "Статей пока нет."
+
+#: factfeed/templates/_results.html:104
+msgid "The ingestion pipeline may still be running."
+msgstr "Процесс сбора данных, возможно, еще выполняется."
+
+#: factfeed/templates/analytics.html:1 factfeed/templates/base.html:21
+msgid "Analytics"
+msgstr "Аналитика"
+
+#: factfeed/templates/analytics.html:2 factfeed/templates/article.html:2
+#: factfeed/templates/base.html:6 factfeed/templates/base.html:18
+#: factfeed/templates/base.html:45 factfeed/templates/search.html:2
+msgid "FactFeed"
+msgstr "FactFeed"
+
+#: factfeed/templates/analytics.html:5
+msgid "Source Analytics"
+msgstr "Аналитика источников"
+
+#: factfeed/templates/analytics.html:7
+msgid ""
+"Visualizing the balance between factual reporting and opinion\n"
+"            across global news sources."
+msgstr ""
+"Визуализация баланса между фактами и мнениями в мировых новостных "
+"источниках."
+
+#: factfeed/templates/analytics.html:19
+#, fuzzy
+msgid "Global Coverage"
+msgstr "Также освещается в"
+
+#: factfeed/templates/analytics.html:24
+msgid "Detailed Statistics"
+msgstr "Подробная статистика"
+
+#: factfeed/templates/analytics.html:29
+msgid "Source"
+msgstr "Источник"
+
+#: factfeed/templates/analytics.html:30
+msgid "Factuality Score"
+msgstr "Оценка фактологичности"
+
+#: factfeed/templates/analytics.html:31
+msgid "Total Sentences"
+msgstr "Всего предложений"
+
+#: factfeed/templates/analytics.html:32 factfeed/templates/analytics.html:88
+msgid "Facts"
+msgstr "Факты"
+
+#: factfeed/templates/analytics.html:33 factfeed/templates/analytics.html:93
+msgid "Opinions"
+msgstr "Мнения"
+
+#: factfeed/templates/analytics.html:34
+msgid "Mixed/Unclear"
+msgstr "Смешанные/Неясно"
+
+#: factfeed/templates/analytics.html:103
+msgid "Unclear"
+msgstr "Неясно"
+
+#: factfeed/templates/analytics.html:182
+msgid "Articles"
+msgstr ""
+
+#: factfeed/templates/article.html:16
+msgid "by"
+msgstr "автор:"
+
+#: factfeed/templates/article.html:40
+msgid "Also covered by"
+msgstr "Также освещается в"
+
+#: factfeed/templates/article.html:74
+msgid "Translating article..."
+msgstr "Перевод статьи..."
+
+#: factfeed/templates/article.html:81
 msgid "Back to search"
 msgstr "Назад к поиску"
 
@@ -104,80 +147,113 @@ msgstr "Назад к поиску"
 msgid "Read original"
 msgstr "Читать оригинал"
 
-#: factfeed/templates/base.html:20
+msgid "Read full translated article"
+msgstr "Читать полный перевод статьи"
+
+msgid "sentences"
+msgstr "предложений"
+
+msgid "Syncing full content from source..."
+msgstr "Синхронизация полного текста..."
+
+msgid "Force Sync"
+msgstr "Обновить контент"
+
+#: factfeed/templates/base.html:20 factfeed/templates/search.html:2
+#: factfeed/templates/search.html:11
 msgid "Search"
 msgstr "Поиск"
 
-#: factfeed/templates/base.html:21
+#: factfeed/templates/base.html:22
 msgid "API Docs"
 msgstr "Документация API"
 
-#: factfeed/templates/base.html:29
+#: factfeed/templates/base.html:45
 msgid ""
 "Distinguishing\n"
 "                facts from opinions."
 msgstr "Отделяем факты от мнений."
 
-#: factfeed/templates/base.html:32
+#: factfeed/templates/base.html:48
 msgid "API Documentation"
 msgstr "Документация API"
 
+#: factfeed/templates/search.html:6
 msgid "Search for topics, people, or events..."
 msgstr "Поиск тем, людей или событий..."
 
+#: factfeed/templates/search.html:16
 msgid "Filter by source"
 msgstr "Фильтр по источнику"
 
+#: factfeed/templates/search.html:18
 msgid "All Sources"
 msgstr "Все источники"
 
-msgid "Filter by date"
-msgstr "Фильтр по дате"
-
-msgid "Any time"
-msgstr "Любое время"
-
-msgid "Last 24 hours"
-msgstr "За 24 часа"
-
-msgid "Last 7 days"
-msgstr "За 7 дней"
-
-msgid "Last 30 days"
-msgstr "За 30 дней"
-
-msgid "Fact density"
-msgstr "Плотность фактов"
-
-msgid "Most recent"
-msgstr "Самые новые"
-
-msgid "High"
-msgstr "Высокая"
-
-msgid "Medium"
-msgstr "Средняя"
-
-msgid "Low"
-msgstr "Низкая"
-
+#: factfeed/templates/search.html:24
 msgid "Filter by content type"
 msgstr "Фильтр по типу"
 
+#: factfeed/templates/search.html:26
 msgid "All Content"
 msgstr "Весь контент"
 
+#: factfeed/templates/search.html:27
 msgid "Mostly Facts"
 msgstr "В основном факты"
 
+#: factfeed/templates/search.html:28
 msgid "Mostly Opinions"
 msgstr "В основном мнения"
 
-msgid "Mixed"
-msgstr "Смешанный"
+#: factfeed/templates/search.html:32
+msgid "Filter by date"
+msgstr "Фильтр по дате"
 
-msgid "Read from other sources"
-msgstr "Читать в других источниках"
+#: factfeed/templates/search.html:34
+msgid "Any time"
+msgstr "Любое время"
 
-msgid "Translating article..."
-msgstr "Перевод статьи..."
+#: factfeed/templates/search.html:35
+msgid "Last 24 hours"
+msgstr "За 24 часа"
+
+#: factfeed/templates/search.html:36
+msgid "Last 7 days"
+msgstr "За 7 дней"
+
+#: factfeed/templates/search.html:37
+msgid "Last 30 days"
+msgstr "За 30 дней"
+
+#: factfeed/templates/search.html:45
+msgid "Fact density"
+msgstr "Плотность фактов"
+
+#: factfeed/templates/search.html:50
+msgid "Most recent"
+msgstr "Самые новые"
+
+#~ msgid "facts"
+#~ msgstr "фактов"
+
+#~ msgid "mixed"
+#~ msgstr "смешанных"
+
+#~ msgid "Processing"
+#~ msgstr "Обработка"
+
+#~ msgid "Show opinion content"
+#~ msgstr "Показать мнения"
+
+#~ msgid "High"
+#~ msgstr "Высокая"
+
+#~ msgid "Medium"
+#~ msgstr "Средняя"
+
+#~ msgid "Low"
+#~ msgstr "Низкая"
+
+#~ msgid "Read from other sources"
+#~ msgstr "Читать в других источниках"
