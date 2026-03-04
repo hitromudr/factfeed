@@ -10,7 +10,9 @@
         border-left: 4px solid var(--color-opinion);
     "
 >
-    {{ _('This article is very short. We likely only fetched the summary due to the source blocking access. Try the "Force Sync" button below or read the original.') }}
+    {{ _('This article is very short. We likely only fetched the summary due to
+    the source blocking access. Try the "Force Sync" button below or read the
+    original.') }}
 </div>
 {% endif %} {% for sentence in sentences %} {% set txt_lower = sentence.text |
 lower %} {% if not ('продолжить чтение' in txt_lower or 'continue reading' in
@@ -22,12 +24,13 @@ _('Opinion'), 'mixed': _('Mixed'), 'unclear': _('Unclear')} %} {% set disp_label
 <span
     class="sentence {{ sentence.label or 'unclear' }}"
     title="{{ disp_label }} ({{ _('Confidence:') }} {{ conf_pct }}%)"
-    >{{ sentence.text | safe }}
-</span>
+    >{{ sentence.text }}</span
+>
 {% endif %} {% endfor %} {% else %}
 <div class="no-classification">
     <div class="article-raw-content">
-        {{ (article.body or _('No content available.')) | safe }}
+        {{ (article.translated_body or article.body or _('No content
+        available.')) | sanitize }}
     </div>
     {% if not article.sentences and article.body %}
     <p

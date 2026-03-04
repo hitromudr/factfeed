@@ -1,8 +1,8 @@
-{% extends "base.html" %} {% block title %}{{ article.title }} - {{
-_('FactFeed') }}{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}{{ article.translated_title or
+article.title }} - {{ _('The Sorter') }}{% endblock %} {% block content %}
 <article class="article-detail">
     <header class="article-header">
-        <h1>{{ article.title }}</h1>
+        <h1>{{ article.translated_title or article.title }}</h1>
 
         <div class="article-meta-modern">
             <div class="meta-main">
@@ -10,7 +10,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 <span class="source-badge">{{ article.source.name }}</span>
                 {% endif %} {% if article.published_at %}
                 <span class="date"
-                    >{{ article.published_at.strftime('%d %b %Y') }}</span
+                    >{{ article.published_at|locdate(locale) }}</span
                 >
                 {% endif %} {% if article.author %}
                 <span class="author">{{ _('by') }} {{ article.author }}</span>
@@ -77,13 +77,36 @@ _('FactFeed') }}{% endblock %} {% block content %}
         <div class="loading-state">
             <div class="spinner"></div>
             <p>{{ _('Syncing full content from source...') }}</p>
-            <script>
-                setTimeout(function () {
-                    location.reload();
-                }, 3000);
-            </script>
+            <div
+                hx-get="/article/{{ article.id }}/content?teaser=false{{ '&lang=' ~ locale if locale and locale != 'en' else '' }}"
+                hx-trigger="every 2s"
+                hx-swap="outerHTML"
+            ></div>
         </div>
-        {% else %} {% include "_article_body.html" %} {% endif %}
+        {% else %} {% include "_article_body.html" %} {% if not
+        article.sentences and article.body %}
+        <div class="queue-status">
+            {% if queue_info %}
+            <div class="queue-box">
+                <span class="pulse-dot"></span>
+                <strong>{{ _('Processing...') }}</strong>
+                <br />
+                {{ _('Position in queue') }}: {{ queue_info.position }}
+                <br />
+                <span class="text-muted"
+                    >{{ _('Est. wait') }}: {{ queue_info.est_wait }}</span
+                >
+            </div>
+            <div
+                hx-get="/article/{{ article.id }}/content?teaser=false{{ '&lang=' ~ locale if locale and locale != 'en' else '' }}"
+                hx-trigger="every 5s"
+                hx-swap="outerHTML"
+            ></div>
+            {% else %}
+            <p class="text-muted italic">{{ _('Classification pending.') }}</p>
+            {% endif %}
+        </div>
+        {% endif %} {% endif %}
     </div>
 
     <footer class="article-footer-modern">
@@ -94,9 +117,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
         {% if article.url %}
         <a
             href="javascript:void(0)"
-            hx-post="/article/{{ article.id }}/sync"
-            hx-target="body"
-            hx-swap="innerHTML"
+            onclick="fetch('/article/{{ article.id }}/sync', {method:'POST'}).then(() => location.reload())"
             class="btn-secondary"
             title="{{ _('Force Sync') }}"
             style="margin-right: 1rem"
@@ -187,4 +208,41 @@ _('FactFeed') }}{% endblock %} {% block content %}
     document.addEventListener("DOMContentLoaded", fixSentenceHtml);
     document.addEventListener("htmx:afterSwap", fixSentenceHtml);
 </script>
+
+<style>
+    .queue-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 2rem;
+        font-size: 0.9rem;
+    }
+
+    .pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+    }
+</style>
 {% endblock %}

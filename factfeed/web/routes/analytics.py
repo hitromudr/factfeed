@@ -5,7 +5,6 @@ from typing import Callable
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,9 +16,9 @@ from factfeed.services.analytics import (
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 from factfeed.web.routes.search import _attach_fact_scores
+from factfeed.web.templating import templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="factfeed/templates")
 
 
 @router.get("/analytics", response_class=HTMLResponse)

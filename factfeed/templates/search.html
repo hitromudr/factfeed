@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ _('Search') }} - {{ _('FactFeed') }}{% endblock %}
+{% block title %}{{ _('Search') }} - {{ _('The Sorter') }}{% endblock %}
 {% block content %}
 <section class="search-section">
     <div class="search-bar">
         <input type="search" name="q" value="{{ q }}" placeholder="{{ _('Search for topics, people, or events...') }}" autocomplete="off"
                hx-get="/search" hx-target="#results" hx-trigger="keyup changed delay:300ms, search"
-               hx-include="[name='source'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true" />
+               hx-include="[name='source'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true"
+               hx-indicator="#search-indicator" />
         <button type="button" hx-get="/search" hx-target="#results"
                 hx-include="[name='q'],[name='source'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true">
             {{ _('Search') }}
@@ -17,7 +18,7 @@
                 hx-include="[name='q'],[name='from'],[name='classification'],[name='sort']" hx-push-url="true">
             <option value="">{{ _('All Sources') }}</option>
             {% for s in sources %}
-            <option value="{{ s.id }}" {% if source == s.id %}selected{% endif %}>{{ s.name }}</option>
+            <option value="{{ s.id }}" {% if source|string == s.id|string %}selected{% endif %}>{{ s.name }}</option>
             {% endfor %}
         </select>
 
@@ -53,6 +54,10 @@
     </div>
 </section>
 
+<div id="search-indicator" class="htmx-indicator" style="text-align:center; padding:2rem; color:var(--text-muted);">
+    <div class="spinner"></div>
+</div>
+
 <section id="results">
     {% include "_results.html" %}
 </section>
@@ -62,6 +67,43 @@
         document.getElementById("sort-input").value = value;
         document.querySelectorAll('.sort-btn').forEach(el => el.classList.remove('active'));
         btn.classList.add('active');
+    }
+
+    function toggleArticle(id, locale) {
+        const container = document.getElementById(`inline-${id}`);
+        const card = document.getElementById(`card-${id}`);
+
+        if (!container) return;
+
+        // If already open (has content)
+        if (container.innerHTML.trim() !== "") {
+            if (container.style.display === "none") {
+                container.style.display = "block";
+                card.classList.add("expanded");
+            } else {
+                container.style.display = "none";
+                card.classList.remove("expanded");
+                // Scroll back to title
+                const headerOffset = 100;
+                const elementPosition = card.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.scrollY - headerOffset;
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth"
+                });
+            }
+            return;
+        }
+
+        // Load content
+        const langParam = locale && locale !== 'en' ? `?lang=${locale}` : '';
+        const url = `/article/${id}/inline${langParam}`;
+
+        container.style.display = "block";
+        card.classList.add("expanded");
+        container.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+
+        htmx.ajax('GET', url, {target: `#inline-${id}`, swap: 'innerHTML'});
     }
 </script>
 {% endblock %}

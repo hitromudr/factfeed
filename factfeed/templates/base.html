@@ -127,6 +127,36 @@
                 const nav = document.getElementById("nav-links");
                 nav.classList.toggle("active");
             }
+
+            // Close hamburger menu on outside click
+            document.addEventListener("click", function (e) {
+                const nav = document.getElementById("nav-links");
+                const hamburger = document.querySelector(".hamburger");
+                if (nav.classList.contains("active") &&
+                    !nav.contains(e.target) &&
+                    !hamburger.contains(e.target)) {
+                    nav.classList.remove("active");
+                }
+            });
+
+            // Global HTMX error handling
+            document.addEventListener("htmx:responseError", function (e) {
+                console.error("HTMX error:", e.detail.xhr.status, e.detail.xhr.statusText);
+                const toast = document.createElement("div");
+                toast.className = "htmx-error-toast";
+                toast.textContent = e.detail.xhr.status === 429
+                    ? "{{ _('Too many requests. Please wait a moment.') }}"
+                    : "{{ _('Something went wrong. Please try again.') }}";
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            });
+            document.addEventListener("htmx:sendError", function () {
+                const toast = document.createElement("div");
+                toast.className = "htmx-error-toast";
+                toast.textContent = "{{ _('Connection lost. Check your network.') }}";
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            });
         </script>
     </body>
 </html>

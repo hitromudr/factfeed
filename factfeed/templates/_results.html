@@ -5,10 +5,12 @@ article.total_count) %} {% if fact_ratio >= 0.7 %} {% set fact_class = 'fact' %}
 {% elif fact_ratio <= 0.4 %} {% set fact_class = 'opinion' %} {% else %} {% set
 fact_class = 'mixed' %} {% endif %} {% endif %}
 
-<div class="article-card {{ fact_class }}">
+<div class="article-card {{ fact_class }}" id="card-{{ article.id }}">
     <h2 class="article-title">
         <a
             href="/article/{{ article.id }}{{ '?lang=' ~ locale if locale and locale != 'en' else '' }}"
+            onclick="event.preventDefault(); toggleArticle('{{ article.id }}', '{{ locale }}')"
+            class="article-title-link"
         >
             {{ group.title }}
         </a>
@@ -40,17 +42,16 @@ fact_class = 'mixed' %} {% endif %} {% endif %}
 
         {% if article.published_at %}
         <span class="article-date">
-            {{ article.published_at.strftime('%d %b %Y') }}
+            {{ article.published_at|locdate(locale) }}
         </span>
         {% endif %}
     </div>
 
     {% if group.snippet %}
-    <p class="article-snippet">
-        {{ group.snippet[:280]|striptags }}{% if group.snippet|length > 280
-        %}...{% endif %}
-    </p>
+    <p class="article-snippet">{{ group.snippet|striptags|truncate(280) }}</p>
     {% endif %}
+
+    <div id="inline-{{ article.id }}" style="display: none"></div>
 </div>
 {% endfor %} {% else %}
 <div class="no-results">

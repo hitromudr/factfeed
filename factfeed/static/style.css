@@ -440,6 +440,10 @@ header {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.article-card.expanded:hover {
+    transform: none;
+}
+
 /* Status Indicators */
 .article-card.fact {
     border-left-color: var(--color-fact);
@@ -556,6 +560,10 @@ header {
     line-height: 1.7;
     color: var(--text-body);
     margin: 0;
+}
+
+.article-card.expanded .article-snippet {
+    display: none;
 }
 
 .no-results {
@@ -708,7 +716,7 @@ header {
     color: var(--text-body);
     max-width: 65ch; /* Optimal reading width */
     margin: 0 auto; /* Center the text column */
-    white-space: pre-wrap; /* Preserve newlines from segmented text */
+    white-space: normal;
 }
 
 .article-body p {
@@ -857,6 +865,41 @@ footer a {
     --text-body: #334155;
 }
 
+/* --- HTMX Indicator & Spinner --- */
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { display: block; }
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- HTMX Error Toast --- */
+.htmx-error-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    z-index: 99999;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.3s ease-out;
+}
+
 /* --- The Core Feature: Sentence Highlighting (Restored) --- */
 .sentence {
     position: relative;
@@ -872,8 +915,8 @@ footer a {
 /* Colors for highlighting (using RGB values of our new palette for opacity) */
 /* Fact: Emerald 500 (#10b981) */
 .sentence.fact {
-    background-color: rgba(16, 185, 129, 0.15);
-    border-bottom: 2px solid rgba(16, 185, 129, 0.8);
+    background-color: rgba(16, 185, 129, 0.3);
+    border-bottom: 2px solid rgba(16, 185, 129, 1);
 }
 /* Opinion: Yellow 400 (#facc15) */
 .sentence.opinion {
@@ -892,7 +935,7 @@ footer a {
 /* Hover states: Darker background tint */
 .sentence.fact:hover,
 .sentence.fact.active {
-    background-color: rgba(16, 185, 129, 0.4);
+    background-color: rgba(16, 185, 129, 0.5);
     border-bottom-color: rgba(16, 185, 129, 1);
 }
 

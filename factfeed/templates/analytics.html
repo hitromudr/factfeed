@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block title %}{{ _('Analytics') }} - {{
-_('FactFeed') }}{% endblock %} {% block content %}
+_('The Sorter') }}{% endblock %} {% block content %}
 <div class="analytics-container">
     <div class="header-section">
         <h1>{{ _('Source Analytics') }}</h1>
@@ -19,6 +19,28 @@ _('FactFeed') }}{% endblock %} {% block content %}
     <div class="map-section">
         <h2>{{ _('Global Coverage') }}</h2>
         <div id="world-map" class="map-container"></div>
+        <div
+            id="custom-map-legend"
+            class="custom-map-legend"
+            style="display: none"
+        >
+            <div
+                class="legend-title"
+                style="
+                    text-align: center;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.9rem;
+                    color: var(--text-main);
+                "
+            >
+                {{ _('Articles') }}
+            </div>
+            <div class="legend-gradient"></div>
+            <div class="legend-labels">
+                <span id="legend-min">1</span>
+                <span id="legend-max">0</span>
+            </div>
+        </div>
     </div>
 
     <div class="table-section">
@@ -48,9 +70,69 @@ _('FactFeed') }}{% endblock %} {% block content %}
                             </div>
                         </td>
                         <td class="num-col">{{ s.total }}</td>
-                        <td class="num-col">{{ s.facts }}</td>
-                        <td class="num-col">{{ s.opinions }}</td>
-                        <td class="num-col">{{ s.mixed + s.unclear }}</td>
+                        <td
+                            class="num-col clickable-cell"
+                            hx-get="/analytics/drilldown?source={{ s.source | urlencode }}&label=fact"
+                            hx-target="#drilldown-container"
+                            onclick="
+                                setTimeout(
+                                    () =>
+                                        document
+                                            .getElementById(
+                                                'drilldown-container',
+                                            )
+                                            .scrollIntoView({
+                                                behavior: 'smooth',
+                                            }),
+                                    100,
+                                )
+                            "
+                            title="{{ _('Click to view facts') }}"
+                        >
+                            {{ s.facts }}
+                        </td>
+                        <td
+                            class="num-col clickable-cell"
+                            hx-get="/analytics/drilldown?source={{ s.source | urlencode }}&label=opinion"
+                            hx-target="#drilldown-container"
+                            onclick="
+                                setTimeout(
+                                    () =>
+                                        document
+                                            .getElementById(
+                                                'drilldown-container',
+                                            )
+                                            .scrollIntoView({
+                                                behavior: 'smooth',
+                                            }),
+                                    100,
+                                )
+                            "
+                            title="{{ _('Click to view opinions') }}"
+                        >
+                            {{ s.opinions }}
+                        </td>
+                        <td
+                            class="num-col clickable-cell"
+                            hx-get="/analytics/drilldown?source={{ s.source | urlencode }}&label=mixed"
+                            hx-target="#drilldown-container"
+                            onclick="
+                                setTimeout(
+                                    () =>
+                                        document
+                                            .getElementById(
+                                                'drilldown-container',
+                                            )
+                                            .scrollIntoView({
+                                                behavior: 'smooth',
+                                            }),
+                                    100,
+                                )
+                            "
+                            title="{{ _('Click to view mixed/unclear') }}"
+                        >
+                            {{ s.mixed + s.unclear }}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -62,19 +144,26 @@ _('FactFeed') }}{% endblock %} {% block content %}
 <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css"
+    integrity="sha384-5T42pwmm9Eq6IKYKkuugmsyxvzvXDazwImzsC76X6lihpgExlMJYSrAtpb5JGZsW"
+    crossorigin="anonymous"
 />
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"
+    integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap"
+    integrity="sha384-mmZJpiTCGapMwh1q3mKOgYu2NobUwarxJ4um1y//PHLKZ6QAIHNUWVbNBL7W2ryF"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"
+    integrity="sha384-XbYdHPxl0m081PcPgZ0adi9q6NS7RjhSWlMpZmNt6ZlufIuMyOii+LMsAcjRHyPT"
+    crossorigin="anonymous"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const stats = {{ stats_json | safe }};
         const geoStats = {{ geo_stats_json | safe }};
 
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-                      (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
         function getThemeColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+                          (!document.documentElement.hasAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
             if (isDark) {
                 return {
                     text: '#94a3b8', // slate-400
@@ -156,7 +245,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
                         const apiKey = apiKeys[firstPoint.datasetIndex];
 
                         if (apiKey) {
-                            htmx.ajax('GET', `/api/v1/analytics/drilldown?source=${encodeURIComponent(sourceName)}&label=${apiKey}`, {
+                            htmx.ajax('GET', `/analytics/drilldown?source=${encodeURIComponent(sourceName)}&label=${apiKey}`, {
                                 target: '#drilldown-container',
                                 swap: 'innerHTML'
                             });
@@ -221,6 +310,18 @@ _('FactFeed') }}{% endblock %} {% block content %}
                     chart.options.plugins.tooltip.bodyColor = newColors.tooltipText;
                     chart.options.plugins.tooltip.borderColor = newColors.tooltipBorder;
                     chart.update();
+
+                    // Update map base styles for uncolored regions
+                    const mapSvg = document.querySelector('#world-map svg');
+                    if (mapSvg) {
+                        mapSvg.querySelectorAll('path[data-code]').forEach(path => {
+                            // Only update regions without data (no inline fill from series)
+                            if (!mapData[path.getAttribute('data-code')]) {
+                                path.style.fill = newColors.mapFill;
+                            }
+                            path.style.stroke = newColors.mapStroke;
+                        });
+                    }
                 }
             });
         });
@@ -231,21 +332,59 @@ _('FactFeed') }}{% endblock %} {% block content %}
 
         // --- World Map ---
         const mapData = {};
+        let maxCount = 0;
+
         geoStats.forEach(item => {
             if (item.country) {
                 mapData[item.country] = item.count;
+                if (item.count > maxCount) {
+                    maxCount = item.count;
+                }
             }
         });
 
-        new jsVectorMap({
+        // jsVectorMap only supports OrdinalScale natively, which means it maps
+        // specific values directly to colors. If a value isn't in the scale,
+        // it turns black. Let's dynamically generate a color gradient for all
+        // values from 1 to maxCount.
+        const mapScale = {};
+        if (maxCount > 0) {
+            const hexToRgb = (hex) => {
+                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? [
+                    parseInt(result[1], 16),
+                    parseInt(result[2], 16),
+                    parseInt(result[3], 16)
+                ] : [0, 0, 0];
+            };
+
+            const rgbToHex = (r, g, b) => {
+                return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+            };
+
+            // emerald-100 to emerald-700
+            const c1 = hexToRgb('#d1fae5');
+            const c2 = hexToRgb('#047857');
+
+            for (let i = 1; i <= maxCount; i++) {
+                const ratio = maxCount === 1 ? 0.5 : (i - 1) / (maxCount - 1);
+                const r = Math.round(c1[0] + ratio * (c2[0] - c1[0]));
+                const g = Math.round(c1[1] + ratio * (c2[1] - c1[1]));
+                const b = Math.round(c1[2] + ratio * (c2[2] - c1[2]));
+                mapScale[i] = rgbToHex(r, g, b);
+            }
+        }
+
+        const mapColors = getThemeColors();
+        const worldMap = new jsVectorMap({
             selector: '#world-map',
             map: 'world',
             zoomButtons: true,
             zoomOnScroll: false,
             regionStyle: {
                 initial: {
-                    fill: colors.mapFill,
-                    stroke: colors.mapStroke,
+                    fill: mapColors.mapFill,
+                    stroke: mapColors.mapStroke,
                     strokeWidth: 0.5,
                     fillOpacity: 1
                 },
@@ -257,10 +396,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
             series: {
                 regions: [{
                     attribute: 'fill',
-                    legend: {
-                        title: '{{ _("Articles") }}'
-                    },
-                    scale: ['#d1fae5', '#047857'],
+                    scale: mapScale,
                     values: mapData
                 }]
             },
@@ -273,6 +409,24 @@ _('FactFeed') }}{% endblock %} {% block content %}
                 }
             }
         });
+
+        if (maxCount > 0) {
+            const legend = document.getElementById('custom-map-legend');
+            const legendMin = document.getElementById('legend-min');
+            const legendMax = document.getElementById('legend-max');
+
+            legend.style.display = 'block';
+            if (maxCount === 1) {
+                document.querySelector('.legend-gradient').style.display = 'none';
+                legendMax.style.display = 'none';
+                legendMin.textContent = '1';
+                legendMin.style.width = '100%';
+                legendMin.style.textAlign = 'center';
+            } else {
+                legendMin.textContent = '1';
+                legendMax.textContent = maxCount;
+            }
+        }
     });
 </script>
 
@@ -328,6 +482,27 @@ _('FactFeed') }}{% endblock %} {% block content %}
         height: 400px;
     }
 
+    .custom-map-legend {
+        max-width: 300px;
+        margin: 1.5rem auto 0;
+        padding: 0.5rem;
+    }
+
+    .legend-gradient {
+        height: 12px;
+        background: linear-gradient(to right, #d1fae5, #047857);
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+    }
+
+    .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
     .map-section h2 {
         font-size: 1.25rem;
         color: var(--text-main);
@@ -358,7 +533,6 @@ _('FactFeed') }}{% endblock %} {% block content %}
         width: 100%;
         border-collapse: collapse;
         font-size: 0.95rem;
-        white-space: nowrap;
     }
 
     .stats-table th,
@@ -367,6 +541,7 @@ _('FactFeed') }}{% endblock %} {% block content %}
         text-align: left;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-main);
+        word-break: break-word;
     }
 
     .stats-table th {
@@ -396,6 +571,21 @@ _('FactFeed') }}{% endblock %} {% block content %}
         font-variant-numeric: tabular-nums;
     }
 
+    .clickable-cell {
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-style: dotted;
+        text-underline-offset: 4px;
+        transition:
+            color 0.2s,
+            background-color 0.2s;
+    }
+
+    .clickable-cell:hover {
+        color: var(--primary-color);
+        background-color: var(--bg-card-hover) !important;
+    }
+
     .score-badge {
         display: inline-flex;
         align-items: center;
@@ -404,7 +594,9 @@ _('FactFeed') }}{% endblock %} {% block content %}
         border-radius: 9999px;
         font-size: 0.875rem;
         font-weight: 600;
-        width: 3.5rem;
+        min-width: 3.5rem;
+        width: max-content;
+        white-space: nowrap;
     }
 
     .score-badge.high {
@@ -420,6 +612,21 @@ _('FactFeed') }}{% endblock %} {% block content %}
     .score-badge.low {
         background-color: #fee2e2;
         color: #b91c1c;
+    }
+
+    :root:not([data-theme="light"]) .score-badge.high {
+        background-color: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+    }
+
+    :root:not([data-theme="light"]) .score-badge.medium {
+        background-color: rgba(245, 158, 11, 0.2);
+        color: #fcd34d;
+    }
+
+    :root:not([data-theme="light"]) .score-badge.low {
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
     }
 
     @media (max-width: 768px) {

@@ -1,0 +1,203 @@
+<div class="article-inline-content" id="article-content-{{ article.id }}">
+    <!-- Top Control Bar -->
+    <div class="inline-controls top">
+        <button
+            class="btn-text"
+            onclick="toggleArticle('{{ article.id }}', '{{ locale }}')"
+            title="{{ _('Collapse article') }}"
+        >
+            <span class="icon">▲</span> {{ _('Collapse') }}
+        </button>
+        {% if article.url %}
+        <a href="{{ article.url }}" target="_blank" class="btn-text external">
+            {{ _('Original') }} <span class="icon">↗</span>
+        </a>
+        <a
+            href="javascript:void(0)"
+            onclick="this.textContent='{{ _('Syncing...') }}'; fetch('/article/{{ article.id }}/sync', {method:'POST'}).then(() => { toggleArticle('{{ article.id }}', '{{ locale }}'); toggleArticle('{{ article.id }}', '{{ locale }}'); })"
+            class="btn-text"
+            title="{{ _('Force Sync') }}"
+        >
+            <span class="icon">↻</span> {{ _('Sync') }}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div
+        class="article-body-container"
+        {%
+        if
+        locale
+        !="en"
+        %}
+        hx-get="/article/{{ article.id }}/content?lang={{ locale }}&teaser=false"
+        hx-trigger="load"
+        hx-swap="innerHTML"
+        {%
+        endif
+        %}
+    >
+        {% if locale != 'en' %}
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ _('Translating article...') }}</p>
+        </div>
+        {% elif article.is_partial %}
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>{{ _('Syncing full content from source...') }}</p>
+            <!-- Poll for updates -->
+            <div
+                hx-get="/article/{{ article.id }}/content?teaser=false{{ '&lang=' ~ locale if locale and locale != 'en' else '' }}"
+                hx-trigger="every 2s"
+                hx-swap="outerHTML"
+            ></div>
+        </div>
+        {% else %} {% include "_article_body.html" %}
+
+        <!-- Queue Info for unclassified articles -->
+        {% if not article.sentences and article.body %}
+        <div class="queue-status">
+            {% if queue_info %}
+            <div class="queue-box">
+                <span class="pulse-dot"></span>
+                <strong>{{ _('Processing...') }}</strong>
+                <br />
+                {{ _('Position in queue') }}: {{ queue_info.position }}
+                <br />
+                <span class="text-muted"
+                    >{{ _('Est. wait') }}: {{ queue_info.est_wait }}</span
+                >
+            </div>
+            <!-- Poll for classification results -->
+            <div
+                hx-get="/article/{{ article.id }}/content?teaser=false{{ '&lang=' ~ locale if locale and locale != 'en' else '' }}"
+                hx-trigger="every 5s"
+                hx-swap="outerHTML"
+            ></div>
+            {% else %}
+            <p class="text-muted italic">{{ _('Classification pending.') }}</p>
+            {% endif %}
+        </div>
+        {% endif %} {% endif %}
+    </div>
+
+    <!-- Bottom Control Bar -->
+    <div class="inline-controls bottom">
+        {% if article.url %}
+        <a
+            href="javascript:void(0)"
+            hx-post="/article/{{ article.id }}/sync"
+            hx-swap="none"
+            onclick="setTimeout(() => toggleArticle('{{ article.id }}', '{{ locale }}'), 1000); setTimeout(() => toggleArticle('{{ article.id }}', '{{ locale }}'), 3000);"
+            class="btn-text"
+            title="{{ _('Force Sync') }}"
+            style="margin-right: 1rem"
+        >
+            <span class="icon">↻</span> {{ _('Force Sync') }}
+        </a>
+        {% endif %}
+        <button
+            class="btn-secondary"
+            onclick="toggleArticle('{{ article.id }}', '{{ locale }}')"
+        >
+            {{ _('Close Article') }}
+        </button>
+    </div>
+</div>
+
+<style>
+    .article-inline-content {
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border-radius: 0 0 12px 12px;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .inline-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .inline-controls.bottom {
+        margin-top: 2rem;
+        margin-bottom: 0;
+        padding-top: 1rem;
+        padding-bottom: 0;
+        border-bottom: none;
+        border-top: 1px dashed var(--border-color);
+        justify-content: center;
+    }
+
+    .btn-text {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .btn-text:hover {
+        color: var(--primary-color);
+        background: var(--bg-body);
+    }
+
+    .queue-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 2rem;
+        font-size: 0.9rem;
+    }
+
+    .pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        margin-right: 6px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+        70% {
+            transform: scale(1);
+            box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+    }
+</style>

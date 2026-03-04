@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import Float, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -15,10 +14,9 @@ from factfeed.nlp.translator import get_or_create_translation
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
 from factfeed.web.limiter import limiter
+from factfeed.web.templating import templates
 
 router = APIRouter()
-
-templates = Jinja2Templates(directory="factfeed/templates")
 
 
 def _date_cutoff(from_filter: Optional[str]) -> Optional[datetime]:
@@ -102,10 +100,16 @@ async def search_articles(
         func.cast(fact_count, Float) / func.nullif(total_count, 0), 0
     )
 
-    # Full-text search filter
+    # Full-text search filter — use English stemming for the generated search_vector,
+    # fall back to simple (no stemming) with OR so non-English queries still match
     if q.strip():
-        ts_query = func.plainto_tsquery("english", q.strip())
-        stmt = stmt.where(Article.search_vector.op("@@")(ts_query))
+        q_stripped = q.strip()
+        ts_english = func.plainto_tsquery("english", q_stripped)
+        ts_simple = func.plainto_tsquery("simple", q_stripped)
+        stmt = stmt.where(
+            Article.search_vector.op("@@")(ts_english)
+            | Article.search_vector.op("@@")(ts_simple)
+        )
 
     # Source filter
     if source and str(source).isdigit():
@@ -120,9 +124,9 @@ async def search_articles(
     if classification == "fact":
         stmt = stmt.where(fact_ratio >= 0.7)
     elif classification == "opinion":
-        stmt = stmt.where(fact_ratio <= 0.3)
+        stmt = stmt.where(fact_ratio <= 0.4)
     elif classification == "mixed":
-        stmt = stmt.where(fact_ratio > 0.3, fact_ratio < 0.7)
+        stmt = stmt.where(fact_ratio > 0.4, fact_ratio < 0.7)
 
     # Sort order
     if sort == "recent":
@@ -136,19 +140,17 @@ async def search_articles(
     return result.scalars().all()
 
 
-@router.get("/")
-@limiter.limit("30/minute")
-async def search_page(
+async def _handle_search_request(
     request: Request,
+    db: AsyncSession,
+    locale: str,
     q: str = "",
     source: Optional[str] = None,
-    from_filter: Optional[str] = Query(None, alias="from"),
+    from_filter: Optional[str] = None,
     classification: Optional[str] = None,
     sort: str = "facts",
-    db: AsyncSession = Depends(get_db),
-    locale: str = Depends(get_locale),
 ):
-    """Render the search page with results."""
+    """Common search logic for page load and HTMX updates."""
     trans = get_translator(request)
 
     articles = await search_articles(
@@ -162,15 +164,16 @@ async def search_page(
     await _attach_fact_scores(db, articles)
 
     # Translate titles AND snippets if needed
-    if locale != "en":
-        # Process translations in parallel using DB cache where available
-        tasks = [get_or_create_translation(db, a, locale) for a in articles]
-        if tasks:
-            await asyncio.gather(*tasks)
-            for article in articles:
-                # Use the translated body (now on the object) to create snippet
-                snippet_text = article.body[:300] if article.body else ""
-                article.translated_snippet = snippet_text
+    # Process translations in parallel using DB cache where available
+    tasks = [get_or_create_translation(db, a, locale) for a in articles]
+    if tasks:
+        await asyncio.gather(*tasks)
+
+    for article in articles:
+        # Use the translated body (now on the object) to create snippet
+        body_text = getattr(article, "translated_body", article.body)
+        snippet_text = body_text[:300] if body_text else ""
+        article.translated_snippet = snippet_text
 
     # Group articles by title
     groups = {}
@@ -189,9 +192,12 @@ async def search_page(
             reverse=True,
         )
         main_article = group[0]
+        # Use translated title if available
+        display_title = getattr(main_article, "translated_title", title)
+
         article_groups.append(
             {
-                "title": title,
+                "title": display_title,
                 "articles": group,
                 "main": main_article,
                 # Use translated snippet if available, else original body
@@ -229,6 +235,24 @@ async def search_page(
     )
 
 
+@router.get("/")
+@limiter.limit("30/minute")
+async def search_page(
+    request: Request,
+    q: str = "",
+    source: Optional[str] = None,
+    from_filter: Optional[str] = Query(None, alias="from"),
+    classification: Optional[str] = None,
+    sort: str = "facts",
+    db: AsyncSession = Depends(get_db),
+    locale: str = Depends(get_locale),
+):
+    """Render the search page with results."""
+    return await _handle_search_request(
+        request, db, locale, q, source, from_filter, classification, sort
+    )
+
+
 @router.get("/search")
 @limiter.limit("30/minute")
 async def search_endpoint(
@@ -242,73 +266,6 @@ async def search_endpoint(
     locale: str = Depends(get_locale),
 ):
     """HTMX search endpoint — returns partial or full page."""
-    trans = get_translator(request)
-
-    articles = await search_articles(
-        db,
-        q=q,
-        source=source,
-        from_filter=from_filter,
-        classification=classification,
-        sort=sort,
-    )
-    await _attach_fact_scores(db, articles)
-
-    if locale != "en":
-        tasks = [get_or_create_translation(db, a, locale) for a in articles]
-        if tasks:
-            await asyncio.gather(*tasks)
-            for article in articles:
-                snippet_text = article.body[:300] if article.body else ""
-                article.translated_snippet = snippet_text
-
-    # Group articles by title
-    groups = {}
-    for article in articles:
-        key = article.title
-        if key not in groups:
-            groups[key] = []
-        groups[key].append(article)
-
-    article_groups = []
-    for title, group in groups.items():
-        group.sort(
-            key=lambda a: a.published_at.timestamp() if a.published_at else 0,
-            reverse=True,
-        )
-        main_article = group[0]
-        article_groups.append(
-            {
-                "title": title,
-                "articles": group,
-                "main": main_article,
-                "snippet": getattr(
-                    main_article, "translated_snippet", main_article.body
-                ),
-            }
-        )
-
-    sources_result = await db.execute(select(Source).order_by(Source.name))
-    sources = sources_result.scalars().all()
-
-    context = {
-        "request": request,
-        "article_groups": article_groups,
-        "sources": sources,
-        "q": q,
-        "source": source,
-        "from_filter": from_filter,
-        "classification": classification,
-        "sort": sort,
-        "_": trans,
-        "locale": locale,
-    }
-
-    if request.headers.get("HX-Request"):
-        return templates.TemplateResponse(
-            request=request, name="_results.html", context=context
-        )
-
-    return templates.TemplateResponse(
-        request=request, name="search.html", context=context
+    return await _handle_search_request(
+        request, db, locale, q, source, from_filter, classification, sort
     )

@@ -5,7 +5,6 @@ from typing import Callable
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,10 +15,9 @@ from factfeed.ingestion.services.on_demand import ingest_article_on_demand
 from factfeed.nlp.translator import get_or_create_translation, translate_text
 from factfeed.web.deps import get_db
 from factfeed.web.i18n import get_locale, get_translator
+from factfeed.web.templating import templates
 
 router = APIRouter()
-
-templates = Jinja2Templates(directory="factfeed/templates")
 
 
 def _confidence_label(confidence: float | None) -> str:
@@ -140,6 +138,33 @@ async def article_detail(
         s.label in ("fact", "opinion", "mixed") for s in article.sentences
     )
 
+    # Calculate queue estimation if waiting for classification
+    queue_info = None
+    if not article.sentences and article.body:
+        from sqlalchemy import func
+
+        from factfeed.db.models import Sentence
+
+        # Count unclassified articles ahead in the queue (ID < current)
+        subq_classified = select(Sentence.article_id).distinct().scalar_subquery()
+        stmt_queue = (
+            select(func.count(Article.id))
+            .where(Article.body.is_not(None))
+            .where(Article.body != "")
+            .where(Article.id.notin_(subq_classified))
+            .where(Article.id < article.id)
+        )
+        position = (await db.execute(stmt_queue)).scalar() or 0
+        position += 1  # 1-based rank
+
+        # Rough estimate: ~2s per article on average
+        est_seconds = position * 2
+        if est_seconds >= 60:
+            est_wait = f"~{(est_seconds + 59) // 60} min"
+        else:
+            est_wait = f"~{est_seconds} sec"
+        queue_info = {"position": position, "est_wait": est_wait}
+
     return templates.TemplateResponse(
         request=request,
         name="article.html",
@@ -149,6 +174,87 @@ async def article_detail(
             "has_classification": has_classification,
             "confidence_label": _confidence_label,
             "similar_articles": similar_articles,
+            "queue_info": queue_info,
+            "_": trans,
+            "locale": locale,
+        },
+    )
+
+
+@router.get("/article/{article_id}/inline", response_class=HTMLResponse)
+async def article_inline(
+    request: Request,
+    article_id: int,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    trans: Callable[[str], str] = Depends(get_translator),
+    locale: str = Depends(get_locale),
+):
+    """Render inline article detail for search results."""
+    stmt = (
+        select(Article)
+        .options(selectinload(Article.source), selectinload(Article.sentences))
+        .where(Article.id == article_id)
+    )
+    result = await db.execute(stmt)
+    article = result.scalar_one_or_none()
+
+    if article is None:
+        return HTMLResponse("Article not found", status_code=404)
+
+    # If article is partial or lacks sentences, trigger background task
+    needs_processing = article.is_partial or not article.sentences
+    if needs_processing:
+        background_tasks.add_task(
+            _background_ingest_task,
+            article.id,
+            getattr(request.app.state, "zs_pipeline", None),
+            getattr(request.app.state, "calibrator", None),
+        )
+
+    # Translate title immediately (using DB cache if available)
+    if locale != "en":
+        await get_or_create_translation(db, article, locale)
+
+    # Add confidence labels to all sentences
+    for s in article.sentences:
+        s.confidence_label = _confidence_label(s.confidence)
+
+    # Calculate queue estimation if waiting for classification
+    queue_info = None
+    if not article.sentences and article.body:
+        from sqlalchemy import func
+
+        from factfeed.db.models import Sentence
+
+        # Count unclassified articles ahead in the queue (ID < current)
+        subq_classified = select(Sentence.article_id).distinct().scalar_subquery()
+        stmt_queue = (
+            select(func.count(Article.id))
+            .where(Article.body.is_not(None))
+            .where(Article.body != "")
+            .where(Article.id.notin_(subq_classified))
+            .where(Article.id < article.id)
+        )
+        position = (await db.execute(stmt_queue)).scalar() or 0
+        position += 1  # 1-based rank
+
+        # Rough estimate: ~2s per article on average
+        est_seconds = position * 2
+        if est_seconds >= 60:
+            est_wait = f"~{(est_seconds + 59) // 60} min"
+        else:
+            est_wait = f"~{est_seconds} sec"
+        queue_info = {"position": position, "est_wait": est_wait}
+
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/_article_inline.html",
+        context={
+            "article": article,
+            "sentences": article.sentences,
+            "confidence_label": _confidence_label,
+            "queue_info": queue_info,
             "_": trans,
             "locale": locale,
         },
