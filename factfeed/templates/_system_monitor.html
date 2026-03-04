@@ -21,27 +21,40 @@
             {% endif %}
         </div>
 
-        {% if state.is_ingesting or state.items_processed > 0 %}
+        {% if state.is_ingesting or (db_articles_count is defined and
+        db_articles_count > 0) or state.items_processed > 0 %}
         <div class="monitor-body">
             <div class="current-task" title="{{ state.current_task }}">
                 {{ state.current_task|truncate(40) }}
             </div>
             <div class="monitor-metrics">
-                <div class="metric" title="{{ _('Articles Queued') }}">
+                <div
+                    class="metric"
+                    title="{{ _('Found') }}: {{ state.items_queued }}, {{ _('Processed') }}: {{ state.items_processed }}, {{ _('Skipped') }}: {{ state.items_skipped|default(0) }}, {{ _('Failed') }}: {{ state.items_failed|default(0) }}"
+                >
                     <span class="metric-icon">📥</span>
-                    <span class="metric-value">{{ state.items_queued }}</span>
+                    <span class="metric-value">
+                        {% if state.items_queued > 0 %} {{ state.items_processed
+                        + state.items_skipped|default(0) +
+                        state.items_failed|default(0) }} / {{ state.items_queued
+                        }} {% else %} 0 {% endif %}
+                    </span>
                 </div>
-                <div class="metric" title="{{ _('Articles Saved') }}">
+                <div class="metric" title="{{ _('Total in DB') }}">
                     <span class="metric-icon">💾</span>
-                    <span class="metric-value"
-                        >{{ state.items_processed }}</span
-                    >
+                    <span class="metric-value">
+                        {% if db_articles_count is defined %}{{
+                        db_articles_count }}{% else %}{{ state.items_processed
+                        }}{% endif %}
+                    </span>
                 </div>
-                <div class="metric" title="{{ _('Classified') }}">
+                <div class="metric" title="{{ _('Total Classified') }}">
                     <span class="metric-icon">🧠</span>
-                    <span class="metric-value"
-                        >{{ state.items_classified }}</span
-                    >
+                    <span class="metric-value">
+                        {% if db_classified_count is defined %}{{
+                        db_classified_count }}{% else %}{{
+                        state.items_classified }}{% endif %}
+                    </span>
                 </div>
             </div>
         </div>

@@ -28,6 +28,7 @@ class Source(Base):
     feed_url = Column(Text, nullable=False, unique=True)
     country_code = Column(String(2), nullable=True)
     region = Column(String(50), nullable=True)
+    language = Column(String(10), nullable=True)
 
     articles = relationship("Article", back_populates="source")
 
@@ -46,6 +47,7 @@ class Article(Base):
     is_partial = Column(Boolean, nullable=False, server_default="false")
     published_at = Column(DateTime(timezone=True), nullable=True)
     source_id = Column(Integer, ForeignKey("sources.id"), nullable=True)
+    language = Column(String(10), nullable=True)
     search_vector = Column(
         TSVECTOR,
         Computed(

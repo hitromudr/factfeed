@@ -1,5 +1,5 @@
 .PHONY: help install dev test lint format clean \
-        up start stop down restart logs ps shell db-shell \
+        reset up start stop down restart logs ps shell db-shell \
         migrate revision init-test-db \
         i18n-extract i18n-update i18n-compile i18n-init
 
@@ -23,6 +23,7 @@ help:
 	@echo "  make clean         Cleanup cache files"
 	@echo ""
 	@echo "Docker Management:"
+	@echo "  make reset         Clear database and restart pipeline"
 	@echo "  make up            Start stack in foreground"
 	@echo "  make start         Start stack in background (daemon)"
 	@echo "  make stop          Stop stack"
@@ -50,8 +51,8 @@ install:
 dev:
 	DATABASE_URL=$(LOCAL_DB_URL) uv run uvicorn $(APP_MODULE) --host $(HOST) --port $(PORT) --reload
 
-test:
-	TEST_DATABASE_URL=$(TEST_DB_URL) uv run pytest
+test: init-test-db
+	DATABASE_URL=$(TEST_DB_URL) TEST_DATABASE_URL=$(TEST_DB_URL) uv run pytest
 
 lint:
 	uv run ruff check .
@@ -67,6 +68,10 @@ clean:
 	rm -rf .coverage htmlcov
 
 # --- Docker Control ---
+
+reset:
+	docker-compose down -v
+	docker-compose up -d --build
 
 up:
 	docker-compose up -d --build

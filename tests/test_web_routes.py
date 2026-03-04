@@ -103,24 +103,6 @@ async def seed_data(db_session: AsyncSession):
     }
 
 
-@pytest_asyncio.fixture
-async def client(db_session: AsyncSession, seed_data):
-    """Create an httpx async test client with the FastAPI app."""
-    from factfeed.web.deps import get_db
-    from factfeed.web.main import app
-
-    async def override_get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
-    app.dependency_overrides.clear()
-
-
 # --- Search endpoint tests ---
 
 
@@ -226,8 +208,8 @@ async def test_article_sentence_highlighting(client, seed_data):
     assert resp.status_code == 200
     # Fact sentences should have the 'fact' class
     assert 'class="sentence fact"' in resp.text
-    # Confidence tooltip should show High/Medium/Low, not raw decimals
-    assert "High confidence" in resp.text or "Medium confidence" in resp.text
+    # Confidence tooltip should show percentage
+    assert "Confidence:" in resp.text
 
 
 @pytest.mark.asyncio

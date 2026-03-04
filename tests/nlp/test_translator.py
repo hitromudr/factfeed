@@ -23,8 +23,11 @@ async def test_get_or_create_translation_cache_hit():
     with patch("factfeed.nlp.translator.translate_text") as mock_api:
         await get_or_create_translation(db, article, "ru")
 
-        assert article.title == "Привет"
-        assert article.body == "Мир"
+        assert article.translated_title == "Привет"
+        assert article.translated_body == "Мир"
+        # Original should be untouched
+        assert article.title == "Hello"
+        assert article.body == "World"
         mock_api.assert_not_called()
 
 
@@ -51,18 +54,45 @@ async def test_get_or_create_translation_cache_miss():
         assert db.execute.call_count >= 2
         assert db.commit.called
 
-        assert article.title == "Привет"
-        assert article.body == "Мир"
+        assert article.translated_title == "Привет"
+        assert article.translated_body == "Мир"
 
 
 @pytest.mark.asyncio
-async def test_english_bypass():
-    """Target='en' returns original article immediately."""
+async def test_same_language_bypass():
+    """Target language matches article language -> return original immediately."""
     db = AsyncMock()
-    article = Article(id=3, title="Hola", body="Mundo")
+    # Article explicitly marked as Spanish
+    article = Article(id=3, title="Hola", body="Mundo", language="es")
 
-    res = await get_or_create_translation(db, article, "en")
+    # Requesting Spanish translation for Spanish article
+    res, _ = await get_or_create_translation(db, article, "es")
 
     assert res.title == "Hola"
     # Should not even query DB
     assert db.execute.called is False
+
+
+@pytest.mark.asyncio
+async def test_translate_different_language():
+    """Target language differs from article language -> proceed with translation."""
+    db = AsyncMock()
+
+    # Mock cache miss
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    db.execute.return_value = mock_result
+
+    # Article in Spanish
+    article = Article(id=4, title="Hola", body="Mundo", language="es")
+
+    # Requesting English translation
+    with patch("factfeed.nlp.translator.translate_text") as mock_api:
+        mock_api.side_effect = ["Hello", "World"]
+
+        await get_or_create_translation(db, article, "en")
+
+        # Should verify translation happened
+        assert mock_api.call_count == 2
+        assert article.translated_title == "Hello"
+        assert article.translated_body == "World"

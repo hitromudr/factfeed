@@ -20,6 +20,8 @@ class PipelineState:
     )
     items_queued: int = 0  # Found in RSS but not yet processed
     items_processed: int = 0  # Successfully ingested/updated in this cycle
+    items_skipped: int = 0  # Duplicates skipped in this cycle
+    items_failed: int = 0  # Items failed processing in this cycle
     items_classified: int = 0  # NLP classification completed in this cycle
     last_update: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -40,10 +42,16 @@ class SystemMonitor:
         return self._state
 
     def start_cycle(self):
-        """Mark cycle as started (counters are cumulative)."""
+        """Mark cycle as started (counters are reset for this cycle)."""
         self._state.is_ingesting = True
         self._state.current_source = None
         self._state.current_task = "Starting ingestion cycle..."
+        # Reset counters for the new cycle
+        self._state.items_queued = 0
+        self._state.items_processed = 0
+        self._state.items_skipped = 0
+        self._state.items_failed = 0
+        self._state.items_classified = 0
         self._touch()
 
     def end_cycle(self):
@@ -67,6 +75,14 @@ class SystemMonitor:
 
     def add_processed(self, count: int = 1):
         self._state.items_processed += count
+        self._touch()
+
+    def add_skipped(self, count: int = 1):
+        self._state.items_skipped += count
+        self._touch()
+
+    def add_failed(self, count: int = 1):
+        self._state.items_failed += count
         self._touch()
 
     def add_classified(self, count: int = 1):

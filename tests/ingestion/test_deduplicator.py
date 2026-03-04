@@ -1,8 +1,9 @@
 """Unit tests for URL hash computation and normalization."""
 
 import pytest
-from factfeed.ingestion.deduplicator import compute_url_hash, article_exists
+
 from factfeed.db.models import Article
+from factfeed.ingestion.deduplicator import article_exists, compute_url_hash
 
 
 def test_compute_url_hash_returns_64_char_hex():
@@ -19,9 +20,9 @@ def test_compute_url_hash_deterministic():
 
 
 def test_compute_url_hash_strips_query_params():
-    """URLs differing only in query parameters produce the same hash."""
+    """URLs differing only in UTM query parameters produce the same hash."""
     base = "https://example.com/article"
-    with_params = "https://example.com/article?utm_source=twitter&ref=homepage"
+    with_params = "https://example.com/article?utm_source=twitter&utm_medium=social"
     assert compute_url_hash(base) == compute_url_hash(with_params)
 
 

@@ -45,7 +45,9 @@ async def test_translation_length_consistency(db_session):
         side_effect=mock_translate_side_effect,
     ):
         # Trigger translation
-        translated_article = await get_or_create_translation(db_session, article, "ru")
+        translated_article, _ = await get_or_create_translation(
+            db_session, article, "ru"
+        )
 
         # Verify Title
         assert translated_article.title.startswith("Perevod: ")

@@ -78,7 +78,7 @@ async def fetch_article_page(url: str, client: httpx.AsyncClient) -> bytes | Non
             # Create a fresh session with browser impersonation for every request
             # impersonate="chrome120" handles the TLS fingerprinting
             async with AsyncSession(impersonate="chrome120", proxy=proxy) as s:
-                response = await s.get(url, headers=headers, timeout=30)
+                response = await s.get(url, headers=headers, timeout=10)
                 response.raise_for_status()
                 return response.content
 

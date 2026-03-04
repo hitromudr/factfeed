@@ -31,7 +31,7 @@ async def translate_text(text: str, target: str) -> str | None:
     around the translation API. Use get_or_create_translation for articles.
     Returns None on failure to avoid caching un-translated text.
     """
-    if not text or target == "en":
+    if not text:
         return text
 
     # Quick check for empty or whitespace-only strings
@@ -60,14 +60,14 @@ async def get_or_create_translation(
 ) -> tuple[Article, Translation | None]:
     """Get translated title/body from DB or fetch from API and save.
 
-    Updates the passed article object's title and body in-place (in memory)
-    with the translated values.
-
-    Note: This handles the Article title and body fields. It does NOT automatically
-    handle the 'sentences' relationship list. Callers needing sentence-level
-    translation must handle that separately (potentially using translate_text).
+    Updates the passed article object with 'translated_title' and 'translated_body'
+    attributes (in memory) to avoid modifying the mapped 'title'/'body' fields
+    and causing accidental DB overwrites.
     """
-    if target_lang == "en":
+    # If target language is same as article language (defaulting to 'en'),
+    # no translation needed.
+    source_lang = getattr(article, "language", "en") or "en"
+    if target_lang == source_lang:
         return article, None
 
     # Ensure session-level locking to allow concurrent calls (e.g. asyncio.gather)
@@ -86,9 +86,9 @@ async def get_or_create_translation(
     if translation:
         # Found cached translation
         if translation.title:
-            article.title = translation.title
+            article.translated_title = translation.title
         if translation.body:
-            article.body = translation.body
+            article.translated_body = translation.body
         return article, translation
 
     # 2. Fetch from API (Cache Miss)
@@ -139,11 +139,11 @@ async def get_or_create_translation(
             async with db._translation_lock:
                 await db.rollback()
 
-    # 4. Update in-memory object
+    # 4. Update in-memory object (Transient attributes)
     if translated_title:
-        article.title = translated_title
+        article.translated_title = translated_title
     if translated_body:
-        article.body = translated_body
+        article.translated_body = translated_body
 
     # If upsert didn't return an object (e.g. failed), fetch it to be safe
     if translation_obj is None:

@@ -16,11 +16,15 @@ Each test function gets a fresh session that is rolled back after the test.
 import os
 from contextlib import asynccontextmanager
 
+import fastapi
 import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+from factfeed.db import session as db_session_module
 from factfeed.db.models import Base
+from factfeed.web.deps import get_db
 from factfeed.web.main import app
 
 # Use a separate test database — never the production database
@@ -28,6 +32,14 @@ TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
     "postgresql+asyncpg://factfeed:factfeed@localhost:5432/factfeed_test",
 )
+
+
+@pytest.fixture(autouse=True)
+def disable_background_tasks(monkeypatch):
+    """Disable background tasks execution during tests to avoid race conditions."""
+    monkeypatch.setattr(
+        fastapi.BackgroundTasks, "add_task", lambda *args, **kwargs: None
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -69,8 +81,32 @@ async def db_session(engine) -> AsyncSession:
         join_transaction_mode="create_savepoint",
     )
     async with session_maker() as session:
+        # Patch the global session maker used by background tasks/schedulers
+        # so they use this test session instead of creating a new one
+        original_session_maker = db_session_module.AsyncSessionLocal
+        db_session_module.AsyncSessionLocal = lambda: session
+
+        # Override dependency for web routes
+        app.dependency_overrides[get_db] = lambda: session
+
         yield session
+
+        # Cleanup overrides
+        app.dependency_overrides.pop(get_db, None)
+        db_session_module.AsyncSessionLocal = original_session_maker
         await session.close()
 
     await transaction.rollback()
     await connection.close()
+
+
+@pytest_asyncio.fixture
+async def client(db_session) -> AsyncClient:
+    """Async test client for FastAPI app.
+
+    Depends on db_session to ensure the app's DB dependency is overridden
+    with the test session before requests are made.
+    """
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
