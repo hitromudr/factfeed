@@ -1,7 +1,7 @@
 """
 DeBERTa zero-shot classification wrapper.
 
-Wraps the HuggingFace zero-shot-classification pipeline with FactFeed's
+Wraps the HuggingFace zero-shot-classification pipeline with The Sorter's
 label mapping (factual statement -> fact, opinion or commentary -> opinion).
 
 The model is NOT loaded at module level. The factory function create_classifier()
@@ -26,7 +26,15 @@ def create_classifier(
     """
     from transformers import pipeline as hf_pipeline
 
-    return hf_pipeline("zero-shot-classification", model=model_name, device=-1)
+    import torch
+
+    device = 0 if torch.cuda.is_available() else -1
+    return hf_pipeline("zero-shot-classification", model=model_name, device=device)
+
+
+def is_gpu_pipeline(zs_pipeline: Callable) -> bool:
+    """Check if the pipeline is running on GPU."""
+    return zs_pipeline.device.type == "cuda"
 
 
 def classify_sentence(text: str, zs_pipeline: Callable) -> dict:

@@ -40,6 +40,7 @@ async def lifespan(app: FastAPI):
     # Initialize NLP classifier (lazy — only if enabled)
     zs_pipeline = None
     calibrator = None
+    nlp_on_gpu = False
     if settings.nlp_enabled:
         try:
             from factfeed.nlp.calibrator import TemperatureScaler
@@ -49,9 +50,13 @@ async def lifespan(app: FastAPI):
             calibrator = TemperatureScaler(
                 temperature=settings.nlp_calibration_temperature
             )
+            from factfeed.nlp.classifier import is_gpu_pipeline
+
+            nlp_on_gpu = is_gpu_pipeline(zs_pipeline)
             log.info(
                 "nlp_classifier_loaded",
                 model="deberta-v3-base-zeroshot-v2.0",
+                device="cuda" if nlp_on_gpu else "cpu",
                 temperature=settings.nlp_calibration_temperature,
             )
         except Exception:
@@ -66,36 +71,49 @@ async def lifespan(app: FastAPI):
         timeout=httpx.Timeout(connect=5.0, read=30.0, write=5.0, pool=5.0),
         follow_redirects=True,
     ) as http_client:
-        # Create and start scheduler
+        # Ingestion job — runs every 15 minutes
         async def ingestion_job():
             await run_ingestion_cycle(AsyncSessionLocal, http_client)
 
-            # Post-ingestion classification
-            if settings.nlp_enabled and zs_pipeline is not None:
-                try:
-                    from factfeed.nlp.pipeline import classify_unprocessed_articles
+        # Classification job — runs every 30 seconds, independent of ingestion
+        async def classification_job():
+            if not settings.nlp_enabled or zs_pipeline is None:
+                return
+            try:
+                from factfeed.nlp.pipeline import classify_unprocessed_articles
 
-                    classified = await classify_unprocessed_articles(
-                        AsyncSessionLocal,
-                        zs_pipeline,
-                        calibrator,
-                        batch_size=settings.nlp_batch_size,
+                classified = await classify_unprocessed_articles(
+                    AsyncSessionLocal,
+                    zs_pipeline,
+                    calibrator,
+                    batch_size=settings.nlp_batch_size_gpu if nlp_on_gpu else settings.nlp_batch_size_cpu,
+                )
+                if classified > 0:
+                    log.info(
+                        "nlp_classification_complete",
+                        articles_classified=classified,
                     )
-                    if classified > 0:
-                        log.info(
-                            "nlp_classification_complete",
-                            articles_classified=classified,
-                        )
-                except Exception:
-                    log.error("nlp_classification_failed", exc_info=True)
+            except Exception:
+                log.error("nlp_classification_failed", exc_info=True)
 
+        app.state.ingestion_job = ingestion_job
         scheduler = create_scheduler(ingestion_job)
+        # Add classification as a separate job running every 30 seconds
+        from apscheduler.triggers.interval import IntervalTrigger
+
+        scheduler.add_job(
+            classification_job,
+            trigger=IntervalTrigger(seconds=15),
+            id="classification",
+            name="Classify unprocessed articles",
+            max_instances=1,
+        )
         scheduler.start()
         yield
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="FactFeed", lifespan=lifespan)
+app = FastAPI(title="The Sorter", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
