@@ -56,34 +56,36 @@
         <!-- Articles per Source -->
         <div class="manage-card">
             <h2>{{ _('Articles by Source') }}</h2>
-            <table class="source-table">
-                <thead>
-                    <tr>
-                        <th>{{ _('Source') }}</th>
-                        <th>{{ _('Count') }}</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in source_stats %}
-                    <tr>
-                        <td>{{ row.name }}</td>
-                        <td class="count-value">{{ row.count }}</td>
-                        <td>
-                            {% if row.count > 0 %}
-                            <button class="btn-delete btn-small"
-                                    hx-delete="/system/articles?source_id={{ row.id }}"
-                                    hx-target="#delete-result"
-                                    hx-confirm="{{ _('Delete all articles from') }} {{ row.name }}?"
-                                    hx-swap="innerHTML">
-                                {{ _('Delete') }}
-                            </button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="daily-list">
+                <table class="source-table">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Source') }}</th>
+                            <th>{{ _('Count') }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in source_stats %}
+                        <tr>
+                            <td>{% if row.country_code %}{{ row.country_code|flag }} {% endif %}{{ row.name }}</td>
+                            <td class="count-value">{{ row.count }}</td>
+                            <td>
+                                {% if row.count > 0 %}
+                                <button class="btn-delete btn-small"
+                                        hx-delete="/system/articles?source_id={{ row.id }}"
+                                        hx-target="#delete-result"
+                                        hx-confirm="{{ _('Delete all articles from') }} {{ row.name }}?"
+                                        hx-swap="innerHTML">
+                                    {{ _('Delete') }}
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Delete by Date -->
             <h3 class="subsection-title">{{ _('Delete by Date') }}</h3>
@@ -103,6 +105,31 @@
                 </button>
             </div>
         </div>
+
+        <!-- Articles by Country -->
+        {% if country_stats %}
+        <div class="manage-card">
+            <h2>{{ _('Articles by Country') }}</h2>
+            <div class="daily-list">
+                <table class="source-table">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Country') }}</th>
+                            <th>{{ _('Count') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in country_stats %}
+                        <tr>
+                            <td>{{ row.country_code|flag }} {{ row.country_code }}</td>
+                            <td class="count-value">{{ row.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <div id="delete-result" class="delete-result-area"></div>

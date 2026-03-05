@@ -91,11 +91,24 @@ async def manage_page(
         select(
             Source.id,
             Source.name,
+            Source.country_code,
             func.count(Article.id).label("count"),
         )
         .outerjoin(Article, Article.source_id == Source.id)
-        .group_by(Source.id, Source.name)
+        .group_by(Source.id, Source.name, Source.country_code)
         .order_by(Source.name)
+    )).all()
+
+    # Per-country article counts
+    country_stats = (await db.execute(
+        select(
+            Source.country_code,
+            func.count(Article.id).label("count"),
+        )
+        .join(Article, Article.source_id == Source.id)
+        .where(Source.country_code.isnot(None))
+        .group_by(Source.country_code)
+        .order_by(func.count(Article.id).desc())
     )).all()
 
     table_sizes = await _get_table_sizes(db)
@@ -129,6 +142,7 @@ async def manage_page(
         context={
             "sources": sources,
             "source_stats": source_stats,
+            "country_stats": country_stats,
             "table_sizes": table_sizes,
             "db_size": db_size,
             "oldest_date": oldest,

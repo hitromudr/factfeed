@@ -253,6 +253,12 @@ msgstr "Кол-во"
 msgid "Database size"
 msgstr "Размер базы"
 
+msgid "Articles by Country"
+msgstr "Статьи по странам"
+
+msgid "Country"
+msgstr "Страна"
+
 #: factfeed/templates/base.html:6 factfeed/templates/base.html:34
 #: factfeed/templates/base.html:105
 msgid "The Sorter"

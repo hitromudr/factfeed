@@ -910,9 +910,7 @@ footer a {
 
 /* --- Data Management Page --- */
 .manage-section {
-    max-width: 900px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    width: 100%;
 }
 
 .manage-section h1 {

@@ -7,7 +7,7 @@ article.title }} - {{ _('The Sorter') }}{% endblock %} {% block content %}
         <div class="article-meta-modern">
             <div class="meta-main">
                 {% if article.source %}
-                <span class="source-badge">{{ article.source.name }}</span>
+                <span class="source-badge">{% if article.source.country_code %}{{ article.source.country_code|flag }} {% endif %}{{ article.source.name }}</span>
                 {% endif %} {% if article.published_at %}
                 <span class="date"
                     >{{ article.published_at|locdate(locale) }}</span
@@ -40,14 +40,14 @@ article.title }} - {{ _('The Sorter') }}{% endblock %} {% block content %}
             <div class="providers-label">{{ _('Also covered by') }}:</div>
             <div class="providers-list">
                 <span class="provider-chip active"
-                    >{{ article.source.name }}</span
+                    >{% if article.source.country_code %}{{ article.source.country_code|flag }} {% endif %}{{ article.source.name }}</span
                 >
                 {% for other in similar_articles %}
                 <a
                     href="/article/{{ other.id }}{{ '?lang=' ~ locale if locale else '' }}"
                     class="provider-chip"
                 >
-                    {{ other.source.name }}
+                    {% if other.source.country_code %}{{ other.source.country_code|flag }} {% endif %}{{ other.source.name }}
                 </a>
                 {% endfor %}
             </div>

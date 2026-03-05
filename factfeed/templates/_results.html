@@ -34,7 +34,7 @@ fact_class = 'mixed' %} {% endif %} {% endif %}
                 class="source-chip {{ art_fact_class }}"
             >
                 <span class="dot"></span>
-                {{ art.source.name }}
+                {% if art.source.country_code %}{{ art.source.country_code|flag }} {% endif %}{{ art.source.name }}
                 <span class="label">{{ art_label }}</span>
             </a>
             {% endif %} {% endfor %}
