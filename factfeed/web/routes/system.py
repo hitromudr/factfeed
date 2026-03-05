@@ -2,7 +2,7 @@
 
 import asyncio
 import copy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Callable
 
 from fastapi import APIRouter, Depends, Form, Query, Request
@@ -109,6 +109,18 @@ async def manage_page(
         select(func.max(Article.published_at)).where(Article.published_at.isnot(None))
     )
 
+    # Articles per day (last 30 days + older grouped)
+    date_trunc = func.date_trunc("day", Article.published_at)
+    daily_stats = (await db.execute(
+        select(
+            date_trunc.label("day"),
+            func.count(Article.id).label("count"),
+        )
+        .where(Article.published_at.isnot(None))
+        .group_by(date_trunc)
+        .order_by(date_trunc.desc())
+    )).all()
+
     locale = get_locale(request)
 
     return templates.TemplateResponse(
@@ -121,6 +133,7 @@ async def manage_page(
             "db_size": db_size,
             "oldest_date": oldest,
             "newest_date": newest,
+            "daily_stats": daily_stats,
             "locale": locale,
             "_": trans,
         },
@@ -133,11 +146,17 @@ async def delete_articles(
     db: AsyncSession = Depends(get_db),
     trans: Callable[[str], str] = Depends(get_translator),
     before: str = Query(None, description="Delete articles before this date (YYYY-MM-DD)"),
+    on: str = Query(None, description="Delete articles on this exact date (YYYY-MM-DD)"),
     source_id: int = Query(None, description="Delete articles from this source"),
 ):
     """Delete articles matching criteria. Returns updated stats HTML fragment."""
     conditions = []
-    if before:
+    if on:
+        day_start = datetime.strptime(on, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        day_end = day_start + timedelta(days=1)
+        conditions.append(Article.published_at >= day_start)
+        conditions.append(Article.published_at < day_end)
+    elif before:
         cutoff = datetime.strptime(before, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         conditions.append(Article.published_at < cutoff)
     if source_id:

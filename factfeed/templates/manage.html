@@ -5,7 +5,7 @@
     <h1>{{ _('Data Management') }}</h1>
 
     <div class="manage-grid">
-        <!-- Database Size Card -->
+        <!-- Database Size + Daily Breakdown Card -->
         <div class="manage-card">
             <h2>{{ _('Storage') }}</h2>
             <div class="size-total">{{ db_size }}</div>
@@ -19,9 +19,36 @@
                     {% endfor %}
                 </tbody>
             </table>
-            {% if oldest_date and newest_date %}
-            <div class="date-range">
-                {{ oldest_date.strftime('%d.%m.%Y') }} &mdash; {{ newest_date.strftime('%d.%m.%Y') }}
+
+            {% if daily_stats %}
+            <h3 class="subsection-title">{{ _('Articles by Day') }}</h3>
+            <div class="daily-list">
+                <table class="daily-table">
+                    <thead>
+                        <tr>
+                            <th>{{ _('Date') }}</th>
+                            <th>{{ _('Count') }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in daily_stats %}
+                        <tr>
+                            <td>{{ row.day.strftime('%d.%m.%Y') }}</td>
+                            <td class="count-value">{{ row.count }}</td>
+                            <td>
+                                <button class="btn-delete btn-small"
+                                        hx-delete="/system/articles?on={{ row.day.strftime('%Y-%m-%d') }}"
+                                        hx-target="#delete-result"
+                                        hx-confirm="{{ _('Delete articles for') }} {{ row.day.strftime('%d.%m.%Y') }}?"
+                                        hx-swap="innerHTML">
+                                    &times;
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             {% endif %}
         </div>
@@ -57,11 +84,9 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
 
-        <!-- Delete by Date -->
-        <div class="manage-card">
-            <h2>{{ _('Delete by Date') }}</h2>
+            <!-- Delete by Date -->
+            <h3 class="subsection-title">{{ _('Delete by Date') }}</h3>
             <p class="manage-hint">{{ _('Delete all articles published before the selected date.') }}</p>
             <div class="delete-form">
                 <input type="date" id="delete-before-date"
@@ -71,7 +96,6 @@
                 <button class="btn-delete"
                         hx-delete="/system/articles"
                         hx-target="#delete-result"
-                        hx-include="#delete-before-date"
                         hx-vals='js:{"before": document.getElementById("delete-before-date").value}'
                         hx-confirm="{{ _('Delete all articles before this date?') }}"
                         hx-swap="innerHTML">

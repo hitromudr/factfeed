@@ -205,6 +205,54 @@ msgstr "Обновить контент"
 msgid "Read original"
 msgstr "Читать оригинал"
 
+msgid "Data Management"
+msgstr "Управление данными"
+
+msgid "Storage"
+msgstr "Хранилище"
+
+msgid "Articles by Day"
+msgstr "Статьи по дням"
+
+msgid "Articles by Source"
+msgstr "Статьи по источникам"
+
+msgid "Delete by Date"
+msgstr "Удалить по дате"
+
+msgid "Delete all articles published before the selected date."
+msgstr "Удалить все статьи, опубликованные до выбранной даты."
+
+msgid "Delete all articles before this date?"
+msgstr "Удалить все статьи до этой даты?"
+
+msgid "Delete all articles from"
+msgstr "Удалить все статьи из"
+
+msgid "Delete articles for"
+msgstr "Удалить статьи за"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "No filter specified"
+msgstr "Не указан фильтр"
+
+msgid "No articles match the criteria"
+msgstr "Нет статей, соответствующих критерию"
+
+msgid "Deleted"
+msgstr "Удалено"
+
+msgid "articles"
+msgstr "статей"
+
+msgid "Count"
+msgstr "Кол-во"
+
+msgid "Database size"
+msgstr "Размер базы"
+
 #: factfeed/templates/base.html:6 factfeed/templates/base.html:34
 #: factfeed/templates/base.html:105
 msgid "The Sorter"
@@ -257,7 +305,15 @@ msgstr "В основном факты"
 msgid "Mostly Opinions"
 msgstr "В основном мнения"
 
-#: factfeed/templates/search.html:32
+#: factfeed/templates/search.html:30
+msgid "Analyzed Only"
+msgstr "Только с анализом"
+
+#: factfeed/templates/search.html:31
+msgid "Not Analyzed"
+msgstr "Без анализа"
+
+#: factfeed/templates/search.html:34
 msgid "Filter by date"
 msgstr "Фильтр по дате"
 
