@@ -230,6 +230,14 @@ header {
     opacity: 0.7;
 }
 
+.metric-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.5;
+    letter-spacing: 0.05em;
+}
+
 .metric-value {
     font-weight: 600;
     color: var(--text-main);
@@ -898,6 +906,149 @@ footer a {
     z-index: 99999;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     animation: fadeIn 0.3s ease-out;
+}
+
+/* --- Data Management Page --- */
+.manage-section {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.manage-section h1 {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+}
+
+.manage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.manage-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.manage-card h2 {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.size-total {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.size-table,
+.source-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.size-table td,
+.source-table td,
+.source-table th {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-body);
+}
+
+.source-table th {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.8rem;
+}
+
+.size-value,
+.count-value {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-main);
+}
+
+.date-range {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.manage-hint {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.delete-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.delete-form input[type="date"] {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-body);
+    color: var(--text-main);
+    font-size: 0.9rem;
+}
+
+.btn-delete {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.btn-delete:hover {
+    background: #b91c1c;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.delete-result-area {
+    margin-top: 1rem;
+}
+
+.manage-result {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.manage-result.success {
+    border-color: var(--color-fact);
+    color: var(--color-fact);
+}
+
+.manage-result.error {
+    border-color: #dc2626;
+    color: #dc2626;
 }
 
 /* --- The Core Feature: Sentence Highlighting (Restored) --- */

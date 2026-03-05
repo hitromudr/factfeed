@@ -28,33 +28,21 @@
                 {{ state.current_task|truncate(40) }}
             </div>
             <div class="monitor-metrics">
-                <div
-                    class="metric"
-                    title="{{ _('Found') }}: {{ state.items_queued }}, {{ _('Processed') }}: {{ state.items_processed }}, {{ _('Skipped') }}: {{ state.items_skipped|default(0) }}, {{ _('Failed') }}: {{ state.items_failed|default(0) }}"
-                >
-                    <span class="metric-icon">📥</span>
-                    <span class="metric-value">
-                        {% if state.items_queued > 0 %} {{ state.items_processed
-                        + state.items_skipped|default(0) +
-                        state.items_failed|default(0) }} / {{ state.items_queued
-                        }} {% else %} 0 {% endif %}
-                    </span>
+                <div class="metric" title="{{ _('Total articles') }}">
+                    <span class="metric-icon">📰</span>
+                    <span class="metric-value">{{ db_articles_count }}</span>
                 </div>
-                <div class="metric" title="{{ _('Total in DB') }}">
-                    <span class="metric-icon">💾</span>
-                    <span class="metric-value">
-                        {% if db_articles_count is defined %}{{
-                        db_articles_count }}{% else %}{{ state.items_processed
-                        }}{% endif %}
-                    </span>
+                <div class="metric" title="{{ _('Articles with content') }}">
+                    <span class="metric-icon">📥</span>
+                    <span class="metric-value">{{ db_articles_with_body|default(0) }}</span>
                 </div>
                 <div class="metric" title="{{ _('Total Classified') }}">
                     <span class="metric-icon">🧠</span>
-                    <span class="metric-value">
-                        {% if db_classified_count is defined %}{{
-                        db_classified_count }}{% else %}{{
-                        state.items_classified }}{% endif %}
-                    </span>
+                    <span class="metric-value">{{ db_classified_count }} / {{ db_articles_with_body|default(0) }}</span>
+                </div>
+                <div class="metric" title="{{ _('Database size') }}">
+                    <span class="metric-icon">💾</span>
+                    <span class="metric-value">{{ db_size }}</span>
                 </div>
             </div>
         </div>

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Data Management') }} - {{ _('The Sorter') }}{% endblock %}
+{% block content %}
+<section class="manage-section">
+    <h1>{{ _('Data Management') }}</h1>
+
+    <div class="manage-grid">
+        <!-- Database Size Card -->
+        <div class="manage-card">
+            <h2>{{ _('Storage') }}</h2>
+            <div class="size-total">{{ db_size }}</div>
+            <table class="size-table">
+                <tbody>
+                    {% for table, size in table_sizes.items() %}
+                    <tr>
+                        <td>{{ table }}</td>
+                        <td class="size-value">{{ size }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if oldest_date and newest_date %}
+            <div class="date-range">
+                {{ oldest_date.strftime('%d.%m.%Y') }} &mdash; {{ newest_date.strftime('%d.%m.%Y') }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Articles per Source -->
+        <div class="manage-card">
+            <h2>{{ _('Articles by Source') }}</h2>
+            <table class="source-table">
+                <thead>
+                    <tr>
+                        <th>{{ _('Source') }}</th>
+                        <th>{{ _('Count') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in source_stats %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td class="count-value">{{ row.count }}</td>
+                        <td>
+                            {% if row.count > 0 %}
+                            <button class="btn-delete btn-small"
+                                    hx-delete="/system/articles?source_id={{ row.id }}"
+                                    hx-target="#delete-result"
+                                    hx-confirm="{{ _('Delete all articles from') }} {{ row.name }}?"
+                                    hx-swap="innerHTML">
+                                {{ _('Delete') }}
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Delete by Date -->
+        <div class="manage-card">
+            <h2>{{ _('Delete by Date') }}</h2>
+            <p class="manage-hint">{{ _('Delete all articles published before the selected date.') }}</p>
+            <div class="delete-form">
+                <input type="date" id="delete-before-date"
+                       {% if oldest_date %}min="{{ oldest_date.strftime('%Y-%m-%d') }}"{% endif %}
+                       {% if newest_date %}max="{{ newest_date.strftime('%Y-%m-%d') }}"{% endif %}
+                       value="" />
+                <button class="btn-delete"
+                        hx-delete="/system/articles"
+                        hx-target="#delete-result"
+                        hx-include="#delete-before-date"
+                        hx-vals='js:{"before": document.getElementById("delete-before-date").value}'
+                        hx-confirm="{{ _('Delete all articles before this date?') }}"
+                        hx-swap="innerHTML">
+                    {{ _('Delete') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-result" class="delete-result-area"></div>
+</section>
+{% endblock %}
