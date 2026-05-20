@@ -9,7 +9,6 @@ These tests do NOT start the scheduler — they only inspect configuration.
 """
 from pathlib import Path
 
-import pytest
 
 from factfeed.ingestion.scheduler import create_scheduler
 

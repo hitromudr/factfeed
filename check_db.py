@@ -2,7 +2,7 @@ import asyncio
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from factfeed.db.session import AsyncSessionLocal
-from factfeed.db.models import Article, Sentence
+from factfeed.db.models import Article
 
 async def main():
     async with AsyncSessionLocal() as db:

@@ -46,14 +46,19 @@ async def fetch_article_page(url: str, client: httpx.AsyncClient) -> bytes | Non
     Ignores the passed 'client' (httpx) for actual fetching, using a fresh AsyncSession with impersonation.
     Implements proxy rotation (Direct -> Riga -> Polka -> Turka -> Nitro) for retries.
     """
-    # Proxies available via host networking
-    proxies_list = [
-        None,  # Direct first
-        "http://riga:fgh4677jhrtjh67EG@127.0.0.1:3129",  # Riga
-        "http://polka:fgh4677jhrtjh67EG@127.0.0.1:4129",  # Polka
-        "http://turka:fgh4677jhrtjh67EG@127.0.0.1:5129",  # Turka
-        "http://hitro:fgh4677jhrtjh67EG@127.0.0.1:6129",  # Hitro
-    ]
+    # Proxies available via host networking. On hosts without SSH-tunnel
+    # exit nodes set FACTFEED_DIRECT_ONLY=1 (deployment without proxy chain).
+    import os as _os
+    if _os.environ.get("FACTFEED_DIRECT_ONLY"):
+        proxies_list = [None]
+    else:
+        proxies_list = [
+            None,  # Direct first
+            "http://riga:fgh4677jhrtjh67EG@127.0.0.1:3129",  # Riga
+            "http://polka:fgh4677jhrtjh67EG@127.0.0.1:4129",  # Polka
+            "http://turka:fgh4677jhrtjh67EG@127.0.0.1:5129",  # Turka
+            "http://hitro:fgh4677jhrtjh67EG@127.0.0.1:6129",  # Hitro
+        ]
 
     # Headers mimicking real Chrome
     headers = {
@@ -78,7 +83,10 @@ async def fetch_article_page(url: str, client: httpx.AsyncClient) -> bytes | Non
             # Create a fresh session with browser impersonation for every request
             # impersonate="chrome120" handles the TLS fingerprinting
             async with AsyncSession(impersonate="chrome120", proxy=proxy) as s:
-                response = await s.get(url, headers=headers, timeout=10)
+                # Timeout configurable via FACTFEED_FETCH_TIMEOUT (default 30s in
+                # direct-only mode, 10s with proxy fallback chain).
+                _timeout = int(_os.environ.get("FACTFEED_FETCH_TIMEOUT", "30"))
+                response = await s.get(url, headers=headers, timeout=_timeout)
                 response.raise_for_status()
                 return response.content
 

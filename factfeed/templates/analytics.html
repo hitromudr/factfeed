@@ -141,21 +141,10 @@ _('The Sorter') }}{% endblock %} {% block content %}
     </div>
 </div>
 
-<link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css"
-    integrity="sha384-5T42pwmm9Eq6IKYKkuugmsyxvzvXDazwImzsC76X6lihpgExlMJYSrAtpb5JGZsW"
-    crossorigin="anonymous"
-/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"
-    integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ"
-    crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsvectormap"
-    integrity="sha384-mmZJpiTCGapMwh1q3mKOgYu2NobUwarxJ4um1y//PHLKZ6QAIHNUWVbNBL7W2ryF"
-    crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"
-    integrity="sha384-XbYdHPxl0m081PcPgZ0adi9q6NS7RjhSWlMpZmNt6ZlufIuMyOii+LMsAcjRHyPT"
-    crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap/dist/css/jsvectormap.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsvectormap/dist/maps/world.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const stats = {{ stats_json | safe }};
@@ -311,11 +300,10 @@ _('The Sorter') }}{% endblock %} {% block content %}
                     chart.options.plugins.tooltip.borderColor = newColors.tooltipBorder;
                     chart.update();
 
-                    // Update map base styles for uncolored regions
+                    // Update map base styles for uncolored regions (including Antarctica)
                     const mapSvg = document.querySelector('#world-map svg');
                     if (mapSvg) {
                         mapSvg.querySelectorAll('path[data-code]').forEach(path => {
-                            // Only update regions without data (no inline fill from series)
                             if (!mapData[path.getAttribute('data-code')]) {
                                 path.style.fill = newColors.mapFill;
                             }

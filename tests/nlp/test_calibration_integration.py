@@ -1,4 +1,3 @@
-import pytest
 
 from factfeed.nlp.calibrator import TemperatureScaler
 from factfeed.nlp.pipeline import classify_article

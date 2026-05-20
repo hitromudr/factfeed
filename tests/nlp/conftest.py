@@ -25,7 +25,7 @@ def mock_zs_pipeline():
     def _pipeline(text, candidate_labels, **kwargs):
         top_label = "factual statement"
         top_score = 0.85
-        other_labels = [l for l in candidate_labels if l != top_label]
+        other_labels = [lbl for lbl in candidate_labels if lbl != top_label]
         remaining_score = 1.0 - top_score
         return {
             "labels": [top_label] + other_labels,

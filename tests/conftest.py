@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures for FactFeed test suite.
+Shared pytest fixtures for The Sorter test suite.
 
 Requires a running PostgreSQL instance. Set TEST_DATABASE_URL environment variable
 to point at a test database, or set up a local PostgreSQL with the default credentials:

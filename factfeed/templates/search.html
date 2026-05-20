@@ -28,6 +28,8 @@
             <option value="fact" {% if classification == 'fact' %}selected{% endif %}>{{ _('Mostly Facts') }}</option>
             <option value="opinion" {% if classification == 'opinion' %}selected{% endif %}>{{ _('Mostly Opinions') }}</option>
             <option value="mixed" {% if classification == 'mixed' %}selected{% endif %}>{{ _('Mixed') }}</option>
+            <option value="classified" {% if classification == 'classified' %}selected{% endif %}>{{ _('Analyzed Only') }}</option>
+            <option value="unclassified" {% if classification == 'unclassified' %}selected{% endif %}>{{ _('Not Analyzed') }}</option>
         </select>
 
         <select name="from" aria-label="{{ _('Filter by date') }}" hx-get="/search" hx-target="#results" hx-trigger="change"

@@ -22,13 +22,12 @@ from typing import List
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import selectinload
 
 from factfeed.config import settings
-from factfeed.db.models import Article, Sentence, Source
-from factfeed.db.session import AsyncSessionLocal
+from factfeed.db.models import Article
 
 # ---------------------------------------------------------------------------
 # Fixtures

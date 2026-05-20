@@ -911,6 +911,13 @@ footer a {
 /* --- Data Management Page --- */
 .manage-section {
     width: 100%;
+    max-width: none;
+    margin: 0;
+}
+
+/* Override main's max-width when manage page is shown */
+main:has(.manage-section) {
+    max-width: 100%;
 }
 
 .manage-section h1 {

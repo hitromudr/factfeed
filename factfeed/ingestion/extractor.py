@@ -1,6 +1,5 @@
 """Article body extraction with trafilatura and partial fallback."""
 
-import re
 from datetime import datetime, timezone
 
 import structlog

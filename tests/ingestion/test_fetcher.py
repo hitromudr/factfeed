@@ -79,7 +79,7 @@ async def test_fetch_rss_feed_http_error_raises():
 @pytest.mark.asyncio
 async def test_fetch_article_page_success():
     """Successful article fetch returns HTML bytes."""
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import MagicMock
 
     client = AsyncMock()
     html = b"<html><body>Hello</body></html>"

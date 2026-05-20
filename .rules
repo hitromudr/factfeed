@@ -1,3 +1,4 @@
 Отвечай по русски
 Используй uv
 используй no_proxy='*' <local_call> чтобы обойти системный прокси
+Используй Makefile для типовых операций (make dev, make test, make up, make logs, make migrate и т.д.)

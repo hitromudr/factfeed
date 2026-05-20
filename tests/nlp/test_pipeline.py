@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from factfeed.nlp.pipeline import SentenceResult, classify_article
+from factfeed.nlp.pipeline import classify_article
 
 # ---------------------------------------------------------------------------
 # Test helpers
@@ -22,7 +22,7 @@ def _mock_pipeline(label="news", score=0.85):
     """Create a mock zero-shot pipeline returning predictable results."""
 
     def fn(text, labels, **kwargs):
-        other = [l for l in labels if l != label][0]
+        other = [lbl for lbl in labels if lbl != label][0]
         return {
             "labels": [label, other],
             "scores": [score, 1 - score],

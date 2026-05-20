@@ -21,7 +21,7 @@ def make_mock_pipeline(label="news", score=0.85):
     """Create a mock zero-shot pipeline returning predictable results."""
 
     def mock_fn(text, labels, **kwargs):
-        other_label = [l for l in labels if l != label][0]
+        other_label = [lbl for lbl in labels if lbl != label][0]
         return {
             "labels": [label, other_label],
             "scores": [score, 1 - score],
@@ -173,7 +173,6 @@ def test_classify_multilingual_sentences():
     assert 0.0 <= result_ru["raw_confidence"] <= 1.0
 
 
-import pytest
 
 
 @pytest.mark.slow

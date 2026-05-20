@@ -1,9 +1,8 @@
 """Unit tests for article extraction and partial fallback."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from unittest.mock import patch
 
-import pytest
 from factfeed.ingestion.extractor import extract_article, parse_article_date, MINIMUM_BODY_LENGTH
 
 

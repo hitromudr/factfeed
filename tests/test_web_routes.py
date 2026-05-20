@@ -9,8 +9,6 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 import pytest_asyncio
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from factfeed.db.models import Article, Sentence, Source
@@ -112,7 +110,7 @@ async def test_search_page_renders(client):
     resp = await client.get("/")
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
-    assert "FactFeed" in resp.text
+    assert "The Sorter" in resp.text
     assert "Search" in resp.text or "search" in resp.text.lower()
 
 

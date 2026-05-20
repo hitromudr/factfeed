@@ -1,7 +1,6 @@
 """Unit tests for the attribution detection and unclear gate pre-filter."""
 
 from factfeed.nlp.pre_filter import (
-    PreFilterResult,
     is_attribution,
     is_unclear,
     pre_filter_sentence,
@@ -62,7 +61,7 @@ def test_attribution_told_reporters(spacy_nlp):
 def test_no_attribution_plain_fact(spacy_nlp):
     """'Global temperatures rose by 1.2 degrees in 2025.' -> None (pass through)"""
     span = _to_span(spacy_nlp, "Global temperatures rose by 1.2 degrees in 2025.")
-    result = pre_filter_sentence(span)
+    pre_filter_sentence(span)
     # This is a short sentence (< 30 tokens) so it will be caught by unclear gate
     # The important thing is it's NOT caught by attribution
     assert not is_attribution(span)

@@ -1,4 +1,4 @@
-"""FactFeed NLP classification pipeline."""
+"""The Sorter NLP classification pipeline."""
 
 from factfeed.nlp.pipeline import SentenceResult, classify_article, classify_article_async
 from factfeed.nlp.persist import persist_sentences

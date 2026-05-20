@@ -22,7 +22,7 @@ services:
 
   migrate:
     build: .
-    command: ["uv", "run", "alembic", "upgrade", "head"]
+    command: ["alembic", "upgrade", "head"]
     volumes:
       - ./factfeed:/app/factfeed
       - ./alembic:/app/alembic
@@ -41,8 +41,6 @@ services:
     build: .
     command:
       [
-        "uv",
-        "run",
         "uvicorn",
         "factfeed.web.main:app",
         "--host",
@@ -58,6 +56,15 @@ services:
       - ./alembic.ini:/app/alembic.ini
     # Use host networking so we can access localhost proxies directly
     network_mode: "host"
+    dns:
+      - 127.0.0.53
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     environment:
       # With network_mode: host, "postgres" hostname won't resolve. Use localhost.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-factfeed}:${POSTGRES_PASSWORD:-factfeed}@localhost:5433/${POSTGRES_DB:-factfeed}

@@ -13,9 +13,9 @@ SQLite cannot be used — GENERATED ALWAYS AS and GIN indexes are PostgreSQL-spe
 """
 
 import pytest
-from sqlalchemy import insert, select, text
+from sqlalchemy import text
 
-from factfeed.db.models import Article, Sentence, Source
+from factfeed.db.models import Article, Source
 
 # ---------------------------------------------------------------------------
 # Table existence tests

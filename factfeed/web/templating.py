@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from babel import Locale
 from babel.dates import format_date as babel_format_date
 from markupsafe import Markup
 from fastapi.templating import Jinja2Templates
@@ -34,11 +35,17 @@ def _localized_date(value: datetime, locale: str = "en") -> str:
     return babel_format_date(value, format="d MMM yyyy", locale=locale)
 
 
-def _country_flag(country_code: str) -> str:
-    """Convert a 2-letter country code to an emoji flag (e.g. 'GB' -> '🇬🇧')."""
+def _country_flag(country_code: str) -> Markup:
+    """Convert a 2-letter country code to an emoji flag with tooltip (e.g. 'GB' -> '🇬🇧')."""
     if not country_code or len(country_code) != 2:
-        return ""
-    return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in country_code.upper())
+        return Markup("")
+    code = country_code.upper()
+    flag = "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in code)
+    try:
+        name = Locale("ru").territories.get(code, code)
+    except Exception:
+        name = code
+    return Markup(f'<span title="{name}">{flag}</span>')
 
 
 def create_templates() -> Jinja2Templates:
