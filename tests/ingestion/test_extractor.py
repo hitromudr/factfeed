@@ -79,3 +79,51 @@ def test_parse_article_date_returns_none_for_none():
 def test_parse_article_date_returns_none_for_garbage():
     """Unparseable string returns None."""
     assert parse_article_date("not-a-date-at-all") is None
+
+
+def test_extract_article_works_with_real_trafilatura_2x_document():
+    """Regression guard for trafilatura 2.x API: bare_extraction now returns
+    a Document object whose attributes are NOT dict-compatible (.get is absent
+    on the object). Calling `extract_article` end-to-end with real HTML must
+    still return a body string, not crash with AttributeError."""
+    body_para = (
+        "Reuters reports that NATO foreign ministers will meet in Brussels "
+        "next week to discuss support for Ukraine. The meeting follows weeks "
+        "of intensified shelling and a fresh round of sanctions targeting the "
+        "energy sector. Several sources confirmed the agenda includes new "
+        "weapons deliveries and longer-range artillery for Kyiv. "
+    )
+    html = (
+        "<html><head><title>NATO talks</title></head>"
+        "<body><article><h1>NATO talks</h1>"
+        f"<p>{body_para * 4}</p></article></body></html>"
+    ).encode("utf-8")
+    result = extract_article(html, "https://example.com/nato", "rss summary")
+    assert result["is_partial"] is False, "real long article must extract fully"
+    assert len(result["body"]) >= MINIMUM_BODY_LENGTH
+    assert "NATO" in result["body"]
+
+
+def test_extract_article_mock_supports_both_dict_and_document_api():
+    """Mocks may supply either a plain dict (legacy 1.x shape) or any object
+    with .as_dict() — both must work. This protects test maintenance when
+    mocks are tightened toward the 2.x reality."""
+    from types import SimpleNamespace
+
+    long_text = "B" * 300
+    fake_doc = SimpleNamespace(
+        as_dict=lambda: {
+            "text": long_text,
+            "author": "Doc Author",
+            "date": "2026-05-22",
+            "image": None,
+        }
+    )
+    with patch("factfeed.ingestion.extractor.trafilatura") as mock_traf:
+        mock_traf.bare_extraction.return_value = fake_doc
+        mock_traf.extract.return_value = f"<p>{long_text}</p>"
+        result = extract_article(b"<html>x</html>", "https://example.com", "summary")
+    assert result["is_partial"] is False
+    assert result["body"] == long_text
+    assert result["author"] == "Doc Author"
+    assert result["published_at"] == "2026-05-22"

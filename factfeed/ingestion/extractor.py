@@ -23,7 +23,18 @@ def extract_article(html_bytes: bytes, url: str, rss_summary: str | None) -> dic
             html_bytes, url=url, include_images=True, favor_recall=True
         )
 
-        body_text = (result.get("text") or "") if result else ""
+        # trafilatura 2.x returns a Document object; .as_dict() yields the
+        # legacy plain-dict shape (with a `text` key for body, plus author/
+        # date/image). 1.x returned a plain dict directly — so we accept
+        # either, using as_dict() when present.
+        if result is None:
+            result_dict: dict = {}
+        elif hasattr(result, "as_dict"):
+            result_dict = result.as_dict()
+        else:
+            result_dict = result  # 1.x dict path
+
+        body_text = result_dict.get("text") or ""
 
         if result is not None and len(body_text) >= MINIMUM_BODY_LENGTH:
             # Full extraction succeeded
@@ -40,9 +51,9 @@ def extract_article(html_bytes: bytes, url: str, rss_summary: str | None) -> dic
             return {
                 "body": body_text,
                 "body_html": body_html,
-                "author": result.get("author") or None,
-                "published_at": result.get("date") or None,
-                "lead_image_url": result.get("image") or None,
+                "author": result_dict.get("author") or None,
+                "published_at": result_dict.get("date") or None,
+                "lead_image_url": result_dict.get("image") or None,
                 "is_partial": False,
             }
 
