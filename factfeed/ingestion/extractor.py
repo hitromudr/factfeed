@@ -1,5 +1,7 @@
 """Article body extraction with trafilatura and partial fallback."""
 
+import html as _html
+import re
 from datetime import datetime, timezone
 
 import structlog
@@ -9,6 +11,32 @@ from dateutil import parser as dateutil_parser
 log = structlog.get_logger()
 
 MINIMUM_BODY_LENGTH = 200
+
+# Trafilatura's `text` field is supposed to be plain text, but in practice
+# (especially for malformed source HTML, paywalled sites, JS-rendered pages)
+# we sometimes see stray markup leak through: bare `<a`, `</p`, `href="..."`
+# fragments, and HTML entities like `&amp;`. These tokens then poison NER
+# (which extracts `href="https://...` as a "named entity") and embedding
+# similarity (HTML noise inflates cross-article cosine). Strip them here.
+_TAG_RE = re.compile(r"<[^>]{1,300}>")
+_BARE_TAG_RE = re.compile(r"<\s*/?\s*[a-z][a-z0-9]{0,15}\b[^>]*", re.IGNORECASE)
+_ATTR_FRAGMENT_RE = re.compile(r"\b(?:href|src|class|style)\s*=\s*\"[^\"]{0,200}\"?")
+_MULTI_WS_RE = re.compile(r"[ \t]+")
+
+
+def _clean_text(text: str) -> str:
+    """Strip HTML residue and collapse whitespace from a trafilatura body."""
+    if not text:
+        return text
+    # Complete tags first (greedy bounded), then bare/unclosed leftovers.
+    text = _TAG_RE.sub(" ", text)
+    text = _BARE_TAG_RE.sub(" ", text)
+    text = _ATTR_FRAGMENT_RE.sub(" ", text)
+    text = _html.unescape(text)
+    text = _MULTI_WS_RE.sub(" ", text)
+    # Preserve paragraph breaks but trim per-line.
+    text = "\n".join(line.strip() for line in text.splitlines())
+    return text.strip()
 
 
 def extract_article(html_bytes: bytes, url: str, rss_summary: str | None) -> dict:
@@ -34,7 +62,7 @@ def extract_article(html_bytes: bytes, url: str, rss_summary: str | None) -> dic
         else:
             result_dict = result  # 1.x dict path
 
-        body_text = result_dict.get("text") or ""
+        body_text = _clean_text(result_dict.get("text") or "")
 
         if result is not None and len(body_text) >= MINIMUM_BODY_LENGTH:
             # Full extraction succeeded

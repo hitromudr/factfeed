@@ -104,6 +104,30 @@ def test_extract_article_works_with_real_trafilatura_2x_document():
     assert "NATO" in result["body"]
 
 
+def test_extract_article_strips_html_residue_from_body():
+    """Trafilatura sometimes returns body with stray HTML markup (href fragments,
+    bare closing tags, entities). _clean_text must remove them so NER and
+    embedding don't ingest HTML noise."""
+    from types import SimpleNamespace
+
+    dirty = (
+        'Article opening paragraph. <a href="https://example.com">link text</a> '
+        'inside the body. Closing tag </p> leak. Entity: AT&amp;T. '
+        + ("Continuing the real story " * 30)
+    )
+    fake_doc = SimpleNamespace(as_dict=lambda: {"text": dirty})
+    with patch("factfeed.ingestion.extractor.trafilatura") as mock_traf:
+        mock_traf.bare_extraction.return_value = fake_doc
+        mock_traf.extract.return_value = "<p>html version</p>"
+        result = extract_article(b"<html>x</html>", "https://example.com", "summary")
+    assert "<a" not in result["body"], "bare <a tag leaked"
+    assert "</p>" not in result["body"], "closing tag leaked"
+    assert 'href="' not in result["body"], "href attribute leaked"
+    assert "&amp;" not in result["body"], "HTML entity not decoded"
+    assert "AT&T" in result["body"], "entity should be decoded, not removed"
+    assert "Continuing the real story" in result["body"]
+
+
 def test_extract_article_mock_supports_both_dict_and_document_api():
     """Mocks may supply either a plain dict (legacy 1.x shape) or any object
     with .as_dict() — both must work. This protects test maintenance when
