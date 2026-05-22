@@ -128,6 +128,28 @@ def test_extract_article_strips_html_residue_from_body():
     assert "Continuing the real story" in result["body"]
 
 
+def test_extract_article_strips_markdown_image_syntax():
+    """Trafilatura occasionally emits markdown images ![alt](url) inline.
+    These must be removed entirely so neither alt text nor URL pollute NER."""
+    from types import SimpleNamespace
+
+    dirty = (
+        "Real article opening. "
+        "![photo of person](http://example.com/img.jpg) "
+        "Real content continues. Read [related article](http://example.com/x) for more. "
+        + ("Background paragraph filler. " * 20)
+    )
+    fake_doc = SimpleNamespace(as_dict=lambda: {"text": dirty})
+    with patch("factfeed.ingestion.extractor.trafilatura") as mock_traf:
+        mock_traf.bare_extraction.return_value = fake_doc
+        mock_traf.extract.return_value = "<p>html</p>"
+        result = extract_article(b"<html>x</html>", "https://example.com", "summary")
+    assert "![photo" not in result["body"], "markdown image leaked"
+    assert "img.jpg" not in result["body"], "image URL leaked"
+    assert "(http://example.com/x)" not in result["body"], "link URL leaked"
+    assert "related article" in result["body"], "markdown link text must remain"
+
+
 def test_extract_article_mock_supports_both_dict_and_document_api():
     """Mocks may supply either a plain dict (legacy 1.x shape) or any object
     with .as_dict() — both must work. This protects test maintenance when

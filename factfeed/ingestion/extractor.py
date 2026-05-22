@@ -21,14 +21,22 @@ MINIMUM_BODY_LENGTH = 200
 _TAG_RE = re.compile(r"<[^>]{1,300}>")
 _BARE_TAG_RE = re.compile(r"<\s*/?\s*[a-z][a-z0-9]{0,15}\b[^>]*", re.IGNORECASE)
 _ATTR_FRAGMENT_RE = re.compile(r"\b(?:href|src|class|style)\s*=\s*\"[^\"]{0,200}\"?")
+# Markdown image syntax ![alt](url) — trafilatura sometimes emits these
+# inline. Drop the whole construct so neither "alt" text nor URL pollute NER.
+_MD_IMAGE_RE = re.compile(r"!\[[^\]]{0,300}\]\([^)]{0,500}\)")
+# Markdown link [text](url) — keep the visible text, drop the URL.
+_MD_LINK_RE = re.compile(r"\[([^\]]{1,200})\]\([^)]{0,500}\)")
 _MULTI_WS_RE = re.compile(r"[ \t]+")
 
 
 def _clean_text(text: str) -> str:
-    """Strip HTML residue and collapse whitespace from a trafilatura body."""
+    """Strip HTML/markdown residue and collapse whitespace."""
     if not text:
         return text
-    # Complete tags first (greedy bounded), then bare/unclosed leftovers.
+    # Markdown first (images entirely, links keep visible text).
+    text = _MD_IMAGE_RE.sub(" ", text)
+    text = _MD_LINK_RE.sub(r"\1", text)
+    # Complete HTML tags, then bare/unclosed leftovers, then attribute fragments.
     text = _TAG_RE.sub(" ", text)
     text = _BARE_TAG_RE.sub(" ", text)
     text = _ATTR_FRAGMENT_RE.sub(" ", text)
